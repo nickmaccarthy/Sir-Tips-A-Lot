@@ -38,18 +38,16 @@ This is my first IOS application.
 2. Open the project in Xcode:
    ```bash
    cd sir-tips-a-lot
-   open "TipCal/Tip Calulator/Tip Calulator.xcodeproj"
+   open "TipCal/Tip Calculator/Tip Calculator.xcodeproj"
    ```
-   
-   > Note: Yes, "Calulator" is intentionally misspelled in the folder name 😄
 
 3. Build and run on your device or simulator
 
 ## Project Structure
 
 ```
-TipCal/Tip Calulator/Tip Calulator/
-├── Tip_CalulatorApp.swift      # App entry point
+TipCal/Tip Calculator/Tip Calculator/
+├── Tip_CalculatorApp.swift      # App entry point
 ├── ContentView.swift            # Main UI with all views
 ├── TipCalculatorViewModel.swift # MVVM ViewModel
 ├── Assets.xcassets/             # Images and colors

@@ -1,6 +1,6 @@
 //
 //  ContentView.swift
-//  Tip Calulator
+//  Tip Calculator
 //
 //  Created by Nick MacCarthy on 12/21/25.
 //
