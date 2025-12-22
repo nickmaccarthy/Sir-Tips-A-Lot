@@ -20,7 +20,15 @@ This is my first IOS application.
 
 ## Screenshots
 
-*Coming soon*
+<p align="center">
+  <img src="screenshots/1.png" width="250" alt="Main Screen" />
+  <img src="screenshots/2.png" width="250" alt="Tip Calculation" />
+  <img src="screenshots/3.png" width="250" alt="Split Bill" />
+</p>
+
+| Main Screen | Tip Calculation | Split Bill |
+|:-----------:|:---------------:|:----------:|
+| Enter your bill amount | See tip and total instantly | Split between multiple people |
 
 ## Requirements
 
