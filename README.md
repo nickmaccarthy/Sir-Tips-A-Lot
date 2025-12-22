@@ -40,7 +40,7 @@ This is my first IOS application.
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/sir-tips-a-lot.git
+   git clone https://github.com/nickmaccarthy/sir-tips-a-lot.git
    ```
 
 2. Open the project in Xcode:
