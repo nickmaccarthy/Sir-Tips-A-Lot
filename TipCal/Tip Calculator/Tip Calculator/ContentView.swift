@@ -15,6 +15,7 @@ struct ContentView: View {
     @State private var showHistory = false
     @State private var logoTapCount = 0
     @State private var showSaveConfirmation = false
+    @State private var historyButtonHighlight = false
     @FocusState private var isInputFocused: Bool
     
     // MARK: - Haptic Feedback
@@ -83,10 +84,16 @@ struct ContentView: View {
                         } label: {
                             Image(systemName: "clock.arrow.circlepath")
                                 .font(.system(size: 20, weight: .medium))
-                                .foregroundColor(.white.opacity(0.7))
+                                .foregroundColor(historyButtonHighlight ? .mint : .white.opacity(0.7))
                                 .frame(width: 44, height: 44)
-                                .background(Color.white.opacity(0.1))
+                                .background(historyButtonHighlight ? Color.mint.opacity(0.3) : Color.white.opacity(0.1))
                                 .clipShape(Circle())
+                                .overlay(
+                                    Circle()
+                                        .stroke(Color.mint, lineWidth: historyButtonHighlight ? 2 : 0)
+                                )
+                                .scaleEffect(historyButtonHighlight ? 1.1 : 1.0)
+                                .animation(.easeInOut(duration: 0.3), value: historyButtonHighlight)
                         }
                         
                         Image("InAppLogo")
@@ -471,6 +478,21 @@ struct ContentView: View {
             .onChange(of: isInputFocused) { _, newValue in
                 if newValue {
                     triggerHaptic(style: .light)
+                }
+            }
+            .onChange(of: viewModel.didAutoSave) { _, didSave in
+                if didSave {
+                    // Animate history button highlight
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        historyButtonHighlight = true
+                    }
+                    
+                    // Fade out after a moment
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        withAnimation(.easeOut(duration: 0.5)) {
+                            historyButtonHighlight = false
+                        }
+                    }
                 }
             }
         }
