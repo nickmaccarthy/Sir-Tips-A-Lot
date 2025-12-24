@@ -404,7 +404,8 @@ struct ContentView: View {
                     .opacity(viewModel.billValue > 0 ? 1 : 0.4)
                     .disabled(viewModel.billValue <= 0 || showSaveConfirmation)
                     
-                    // Tip Jar Button
+                    #if DEBUG
+                    // Tip Jar Button (hidden in Release builds for App Store review)
                     Button {
                         showTipJar = true
                     } label: {
@@ -426,6 +427,7 @@ struct ContentView: View {
                     }
                     .buttonStyle(ScaleButtonStyle())
                     .padding(.top, 8)
+                    #endif
                     
                     Spacer(minLength: 40)
                 }
@@ -455,9 +457,11 @@ struct ContentView: View {
                     }
                 }
             }
+            #if DEBUG
             .sheet(isPresented: $showTipJar) {
                 TipJarView()
             }
+            #endif
             .sheet(isPresented: $showAppInfo) {
                 AppInfoView()
             }

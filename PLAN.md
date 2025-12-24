@@ -67,6 +67,12 @@ To approve the application, we must transform it from a "stateless calculator" i
     1.  Comment out or use a compiler flag to hide the Tip Jar section/buttons. 
     2.  *Note: Apple sometimes views donation buttons on simple utility apps as "spammy" during the first review.*
 
+### Step 6: Update application logo
+**Goal:** Update the Application Logo one sees on the home screen.  
+* **Files:** use `logo.png` 
+* **Instructions:** 
+    1. Use logo.png and replace our current logo with that one
+    2. Make sure it meets app requirements like the old logo did with transparancy and the such that meets app store guidelines
 ---
 
 ## Prompting Guide for Cursor/Claude
