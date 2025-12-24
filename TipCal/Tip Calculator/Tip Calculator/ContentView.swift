@@ -12,7 +12,9 @@ struct ContentView: View {
     @State private var animateGradient = false
     @State private var showTipJar = false
     @State private var showAppInfo = false
+    @State private var showHistory = false
     @State private var logoTapCount = 0
+    @State private var showSaveConfirmation = false
     @FocusState private var isInputFocused: Bool
     
     // MARK: - Haptic Feedback
@@ -73,6 +75,20 @@ struct ContentView: View {
                                 .foregroundColor(.white.opacity(0.5))
                         }
                         Spacer()
+                        
+                        // History Button
+                        Button {
+                            triggerHaptic(style: .light)
+                            showHistory = true
+                        } label: {
+                            Image(systemName: "clock.arrow.circlepath")
+                                .font(.system(size: 20, weight: .medium))
+                                .foregroundColor(.white.opacity(0.7))
+                                .frame(width: 44, height: 44)
+                                .background(Color.white.opacity(0.1))
+                                .clipShape(Circle())
+                        }
+                        
                         Image("InAppLogo")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
@@ -340,6 +356,54 @@ struct ContentView: View {
                     )
                     .padding(.horizontal, 20)
                     
+                    // Save Button
+                    Button {
+                        triggerHaptic(style: .medium)
+                        viewModel.saveBill()
+                        
+                        // Show confirmation
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            showSaveConfirmation = true
+                        }
+                        
+                        // Reset after delay
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                            withAnimation(.easeOut(duration: 0.2)) {
+                                showSaveConfirmation = false
+                            }
+                        }
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: showSaveConfirmation ? "checkmark.circle.fill" : "square.and.arrow.down")
+                                .font(.system(size: 14, weight: .semibold))
+                                .contentTransition(.symbolEffect(.replace))
+                            Text(showSaveConfirmation ? "Saved!" : "Save to History")
+                                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                .contentTransition(.numericText())
+                        }
+                        .foregroundColor(showSaveConfirmation ? .white : .black)
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 24)
+                        .background(
+                            Group {
+                                if showSaveConfirmation {
+                                    Color.green
+                                } else {
+                                    LinearGradient(
+                                        colors: [Color.mint, Color.teal],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                }
+                            }
+                        )
+                        .clipShape(Capsule())
+                    }
+                    .buttonStyle(ScaleButtonStyle())
+                    .padding(.top, 16)
+                    .opacity(viewModel.billValue > 0 ? 1 : 0.4)
+                    .disabled(viewModel.billValue <= 0 || showSaveConfirmation)
+                    
                     // Tip Jar Button
                     Button {
                         showTipJar = true
@@ -396,6 +460,9 @@ struct ContentView: View {
             }
             .sheet(isPresented: $showAppInfo) {
                 AppInfoView()
+            }
+            .sheet(isPresented: $showHistory) {
+                HistoryView(viewModel: viewModel)
             }
             .onChange(of: isInputFocused) { _, newValue in
                 if newValue {
@@ -653,6 +720,194 @@ struct InfoRow: View {
                 .font(.system(size: 16, weight: .bold, design: .monospaced))
                 .foregroundColor(.mint)
         }
+    }
+}
+
+// MARK: - History View
+struct HistoryView: View {
+    @Environment(\.dismiss) private var dismiss
+    @ObservedObject var viewModel: TipCalculatorViewModel
+    
+    var body: some View {
+        ZStack {
+            // Background
+            LinearGradient(
+                colors: [
+                    Color(red: 0.1, green: 0.1, blue: 0.2),
+                    Color(red: 0.15, green: 0.1, blue: 0.25)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                // Header
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Bill History")
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .foregroundColor(.white)
+                        
+                        Text("Your recent calculations")
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.6))
+                    }
+                    
+                    Spacer()
+                    
+                    if !viewModel.recentBills.isEmpty {
+                        Button {
+                            viewModel.clearHistory()
+                        } label: {
+                            Text("Clear All")
+                                .font(.system(size: 14, weight: .medium, design: .rounded))
+                                .foregroundColor(.red.opacity(0.8))
+                        }
+                    }
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 24)
+                .padding(.bottom, 16)
+                
+                if viewModel.recentBills.isEmpty {
+                    // Empty State
+                    Spacer()
+                    
+                    VStack(spacing: 16) {
+                        Image(systemName: "clock.arrow.circlepath")
+                            .font(.system(size: 60))
+                            .foregroundColor(.white.opacity(0.3))
+                        
+                        Text("No History Yet")
+                            .font(.system(size: 22, weight: .bold, design: .rounded))
+                            .foregroundColor(.white.opacity(0.6))
+                        
+                        Text("Save a calculation to see it here")
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.4))
+                    }
+                    
+                    Spacer()
+                } else {
+                    // Bill List
+                    List {
+                        ForEach(viewModel.recentBills) { bill in
+                            HistoryRowView(bill: bill)
+                                .listRowBackground(Color.white.opacity(0.05))
+                                .listRowSeparatorTint(Color.white.opacity(0.1))
+                        }
+                        .onDelete(perform: viewModel.deleteBill)
+                    }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
+                }
+                
+                // Done Button
+                Button {
+                    dismiss()
+                } label: {
+                    Text("Done")
+                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(
+                            LinearGradient(
+                                colors: [Color.mint, Color.teal],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .clipShape(Capsule())
+                }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 20)
+            }
+        }
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
+    }
+}
+
+// MARK: - History Row View
+struct HistoryRowView: View {
+    let bill: SavedBill
+    
+    private static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter
+    }()
+    
+    private static let currencyFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = "USD"
+        return formatter
+    }()
+    
+    private func formatCurrency(_ amount: Double) -> String {
+        Self.currencyFormatter.string(from: NSNumber(value: amount)) ?? "$0.00"
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Date
+            Text(Self.dateFormatter.string(from: bill.date))
+                .font(.system(size: 12, weight: .medium, design: .rounded))
+                .foregroundColor(.white.opacity(0.5))
+            
+            // Main info row
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Bill")
+                        .font(.system(size: 11, weight: .medium, design: .rounded))
+                        .foregroundColor(.white.opacity(0.5))
+                    Text(formatCurrency(bill.billAmount))
+                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        .foregroundColor(.white)
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .center, spacing: 4) {
+                    Text("Tip")
+                        .font(.system(size: 11, weight: .medium, design: .rounded))
+                        .foregroundColor(.white.opacity(0.5))
+                    Text("\(Int(bill.tipPercentage))%")
+                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        .foregroundColor(.mint)
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text("Total")
+                        .font(.system(size: 11, weight: .medium, design: .rounded))
+                        .foregroundColor(.white.opacity(0.5))
+                    Text(formatCurrency(bill.totalAmount))
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                }
+            }
+            
+            // Split info (if applicable)
+            if bill.numberOfPeople > 1 {
+                HStack {
+                    Image(systemName: "person.2.fill")
+                        .font(.system(size: 12))
+                        .foregroundColor(.mint.opacity(0.7))
+                    
+                    Text("Split \(bill.numberOfPeople) ways: \(formatCurrency(bill.amountPerPerson)) each")
+                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .foregroundColor(.mint)
+                }
+                .padding(.top, 4)
+            }
+        }
+        .padding(.vertical, 8)
     }
 }
 

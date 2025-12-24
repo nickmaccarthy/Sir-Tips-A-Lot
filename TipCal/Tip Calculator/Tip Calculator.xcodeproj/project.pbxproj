@@ -11,6 +11,7 @@
 		41D161A32EF83D330004C800 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161A22EF83D330004C800 /* ContentView.swift */; };
 		41D161A52EF83D330004C800 /* TipCalculatorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161A42EF83D330004C800 /* TipCalculatorViewModel.swift */; };
 		41D161A72EF83D330004C800 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 41D161A62EF83D330004C800 /* Assets.xcassets */; };
+		41D161B02EF83D330004C800 /* SavedBill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161AF2EF83D330004C800 /* SavedBill.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -19,6 +20,7 @@
 		41D161A22EF83D330004C800 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		41D161A42EF83D330004C800 /* TipCalculatorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TipCalculatorViewModel.swift; sourceTree = "<group>"; };
 		41D161A62EF83D330004C800 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		41D161AF2EF83D330004C800 /* SavedBill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedBill.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -51,12 +53,21 @@
 		41D161352EF83D330004C800 /* Tip Calculator */ = {
 			isa = PBXGroup;
 			children = (
+				41D161AE2EF83D330004C800 /* Models */,
 				41D161A02EF83D330004C800 /* Tip_CalculatorApp.swift */,
 				41D161A22EF83D330004C800 /* ContentView.swift */,
 				41D161A42EF83D330004C800 /* TipCalculatorViewModel.swift */,
 				41D161A62EF83D330004C800 /* Assets.xcassets */,
 			);
 			path = "Tip Calculator";
+			sourceTree = "<group>";
+		};
+		41D161AE2EF83D330004C800 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				41D161AF2EF83D330004C800 /* SavedBill.swift */,
+			);
+			path = Models;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -134,6 +145,7 @@
 				41D161A12EF83D330004C800 /* Tip_CalculatorApp.swift in Sources */,
 				41D161A32EF83D330004C800 /* ContentView.swift in Sources */,
 				41D161A52EF83D330004C800 /* TipCalculatorViewModel.swift in Sources */,
+				41D161B02EF83D330004C800 /* SavedBill.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
