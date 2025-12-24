@@ -23,6 +23,24 @@ struct ContentView: View {
         #endif
     }
     
+    // MARK: - Share Text Generator
+    private var shareText: String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = "USD"
+        
+        let bill = formatter.string(from: NSNumber(value: viewModel.billValue)) ?? "$0.00"
+        let tip = formatter.string(from: NSNumber(value: viewModel.tipAmount)) ?? "$0.00"
+        let total = formatter.string(from: NSNumber(value: viewModel.totalAmount)) ?? "$0.00"
+        let perPerson = formatter.string(from: NSNumber(value: viewModel.amountPerPerson)) ?? "$0.00"
+        
+        if viewModel.numberOfPeopleValue > 1 {
+            return "Bill: \(bill) | Tip: \(tip) (\(Int(viewModel.effectiveTipPercentage))%) | Total: \(total) | You owe: \(perPerson) — via Sir Tips-A-Lot"
+        } else {
+            return "Bill: \(bill) | Tip: \(tip) (\(Int(viewModel.effectiveTipPercentage))%) | Total: \(total) — via Sir Tips-A-Lot"
+        }
+    }
+    
     var body: some View {
         ZStack {
             // Animated gradient background
@@ -273,6 +291,28 @@ struct ContentView: View {
                                 style: .highlight
                             )
                         }
+                        
+                        // Share Button
+                        ShareLink(item: shareText) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "square.and.arrow.up")
+                                Text("Share Split")
+                            }
+                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .foregroundColor(.black)
+                            .padding(.vertical, 12)
+                            .padding(.horizontal, 24)
+                            .background(
+                                LinearGradient(
+                                    colors: [Color.mint, Color.teal],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .clipShape(Capsule())
+                        }
+                        .buttonStyle(ScaleButtonStyle())
+                        .padding(.top, 16)
                     }
                     .padding(20)
                     .background(
