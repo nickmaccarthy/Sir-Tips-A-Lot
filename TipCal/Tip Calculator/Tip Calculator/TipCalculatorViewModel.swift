@@ -17,9 +17,12 @@ class TipCalculatorViewModel: ObservableObject {
     @Published var isCustomTipSelected: Bool = false
     @Published var customTipString: String = ""
     @Published var recentBills: [SavedBill] = []
+    @Published var didAutoSave: Bool = false
     
     private let userDefaultsKey = "recentBills"
     private let maxHistoryCount = 10
+    private let autoSaveDelay: TimeInterval = 7.0
+    private var cancellables = Set<AnyCancellable>()
     
     init() {
         // Load bills synchronously on init (safe for small data)
@@ -27,6 +30,25 @@ class TipCalculatorViewModel: ObservableObject {
            let bills = try? JSONDecoder().decode([SavedBill].self, from: data) {
             self.recentBills = bills
         }
+        
+        // Set up auto-save pipeline: saves after 10 seconds of idle time
+        setupAutoSave()
+    }
+    
+    /// Sets up Combine pipeline to auto-save after idle period
+    private func setupAutoSave() {
+        Publishers.CombineLatest4(
+            $billAmountString,
+            $selectedTipPercentage,
+            $numberOfPeopleString,
+            Publishers.CombineLatest3($roundUp, $customTipString, $isCustomTipSelected)
+        )
+        .dropFirst() // Skip the initial values on subscription
+        .debounce(for: .seconds(autoSaveDelay), scheduler: DispatchQueue.main)
+        .sink { [weak self] _ in
+            self?.autoSaveBillIfNeeded()
+        }
+        .store(in: &cancellables)
     }
     
     var billValue: Double {
@@ -64,6 +86,14 @@ class TipCalculatorViewModel: ObservableObject {
         return totalAmount / Double(numberOfPeopleValue)
     }
     
+    /// Checks if current bill values match the most recently saved bill
+    private var isDuplicateOfLastSave: Bool {
+        guard let lastBill = recentBills.first else { return false }
+        return lastBill.billAmount == billValue &&
+               lastBill.tipPercentage == effectiveTipPercentage &&
+               lastBill.numberOfPeople == numberOfPeopleValue
+    }
+    
     func selectTipPercentage(_ percentage: Double) {
         selectedTipPercentage = percentage
         isCustomTipSelected = false
@@ -74,6 +104,18 @@ class TipCalculatorViewModel: ObservableObject {
     }
     
     // MARK: - Bill History Persistence
+    
+    /// Auto-saves the bill if valid and not a duplicate of the last save
+    private func autoSaveBillIfNeeded() {
+        guard billValue > 0, !isDuplicateOfLastSave else { return }
+        saveBill()
+        
+        // Signal that an auto-save occurred
+        didAutoSave = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            self?.didAutoSave = false
+        }
+    }
     
     /// Saves the current bill calculation to history
     func saveBill() {
