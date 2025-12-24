@@ -1,0 +1,41 @@
+//
+//  SavedBill.swift
+//  Tip Calculator
+//
+//  Created by Nick MacCarthy on 12/23/25.
+//
+
+import Foundation
+
+/// Represents a saved tip calculation for history persistence
+struct SavedBill: Codable, Identifiable {
+    let id: UUID
+    let date: Date
+    let billAmount: Double
+    let tipPercentage: Double
+    let tipAmount: Double
+    let totalAmount: Double
+    let numberOfPeople: Int
+    let amountPerPerson: Double
+    
+    init(
+        id: UUID = UUID(),
+        date: Date = Date(),
+        billAmount: Double,
+        tipPercentage: Double,
+        tipAmount: Double,
+        totalAmount: Double,
+        numberOfPeople: Int,
+        amountPerPerson: Double
+    ) {
+        self.id = id
+        self.date = date
+        self.billAmount = billAmount
+        self.tipPercentage = tipPercentage
+        self.tipAmount = tipAmount
+        self.totalAmount = totalAmount
+        self.numberOfPeople = numberOfPeople
+        self.amountPerPerson = amountPerPerson
+    }
+}
+
