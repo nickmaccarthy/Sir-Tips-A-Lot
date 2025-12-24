@@ -15,6 +15,14 @@ struct ContentView: View {
     @State private var logoTapCount = 0
     @FocusState private var isInputFocused: Bool
     
+    // MARK: - Haptic Feedback
+    private func triggerHaptic(style: UIImpactFeedbackGenerator.FeedbackStyle = .medium) {
+        #if os(iOS)
+        let generator = UIImpactFeedbackGenerator(style: style)
+        generator.impactOccurred()
+        #endif
+    }
+    
     var body: some View {
         ZStack {
             // Animated gradient background
@@ -104,6 +112,7 @@ struct ContentView: View {
                                         percentage: percentage,
                                         isSelected: !viewModel.isCustomTipSelected && viewModel.selectedTipPercentage == Double(percentage)
                                     ) {
+                                        triggerHaptic(style: .medium)
                                         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                                             viewModel.selectTipPercentage(Double(percentage))
                                         }
@@ -114,6 +123,7 @@ struct ContentView: View {
                                 CustomTipButton(
                                     isSelected: viewModel.isCustomTipSelected
                                 ) {
+                                    triggerHaptic(style: .medium)
                                     withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                                         viewModel.selectCustomTip()
                                     }
@@ -167,6 +177,9 @@ struct ContentView: View {
                                 Toggle("", isOn: $viewModel.roundUp)
                                     .tint(.mint)
                                     .labelsHidden()
+                                    .onChange(of: viewModel.roundUp) { _, _ in
+                                        triggerHaptic(style: .light)
+                                    }
                             }
                             
                             Divider()
@@ -182,6 +195,7 @@ struct ContentView: View {
                                 
                                 HStack(spacing: 16) {
                                     Button {
+                                        triggerHaptic(style: .light)
                                         let current = Int(viewModel.numberOfPeopleString) ?? 1
                                         if current > 1 {
                                             viewModel.numberOfPeopleString = String(current - 1)
@@ -199,6 +213,7 @@ struct ContentView: View {
                                         .frame(minWidth: 40)
                                     
                                     Button {
+                                        triggerHaptic(style: .light)
                                         let current = Int(viewModel.numberOfPeopleString) ?? 1
                                         viewModel.numberOfPeopleString = String(current + 1)
                                     } label: {
@@ -341,6 +356,11 @@ struct ContentView: View {
             }
             .sheet(isPresented: $showAppInfo) {
                 AppInfoView()
+            }
+            .onChange(of: isInputFocused) { _, newValue in
+                if newValue {
+                    triggerHaptic(style: .light)
+                }
             }
         }
     }
