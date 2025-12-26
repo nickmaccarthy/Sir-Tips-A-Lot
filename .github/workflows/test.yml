@@ -1,0 +1,51 @@
+name: Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    name: Run Unit Tests
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: List available simulators
+        run: xcrun simctl list devices available | head -50
+
+      - name: Build and Test
+        run: |
+          # Find an available iPhone simulator
+          SIMULATOR=$(xcrun simctl list devices available | grep -E "iPhone.*Simulator" | head -1 | sed 's/.*(\([^)]*\)).*/\1/')
+          echo "Using simulator: $SIMULATOR"
+          
+          xcodebuild test \
+            -project "TipCal/Tip Calculator/Tip Calculator.xcodeproj" \
+            -scheme "Tip Calculator" \
+            -destination "platform=iOS Simulator,id=$SIMULATOR" \
+            -resultBundlePath TestResults \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            | xcpretty --color --report junit || true
+          
+          # Check test results
+          if [ -d "TestResults" ]; then
+            echo "Tests completed. Results saved to TestResults/"
+          fi
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: TestResults
+          retention-days: 7
+

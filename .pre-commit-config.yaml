@@ -1,0 +1,36 @@
+# Pre-commit configuration for Sir Tips-A-Lot
+# Install: pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  # Local hooks for iOS/Swift project
+  - repo: local
+    hooks:
+      - id: xcode-build
+        name: Xcode Build
+        entry: bash -c 'xcodebuild build -project "TipCal/Tip Calculator/Tip Calculator.xcodeproj" -scheme "Tip Calculator" -destination "generic/platform=iOS Simulator" -quiet'
+        language: system
+        pass_filenames: false
+        files: \.(swift|xcodeproj)$
+        stages: [pre-commit]
+
+      - id: xcode-test
+        name: Xcode Unit Tests
+        entry: bash -c 'xcodebuild test -project "TipCal/Tip Calculator/Tip Calculator.xcodeproj" -scheme "Tip Calculator" -destination "generic/platform=iOS Simulator" -quiet'
+        language: system
+        pass_filenames: false
+        files: \.(swift|xcodeproj)$
+        stages: [pre-commit]
+
+  # Standard pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: \.(xcodeproj|xcworkspace|pbxproj)$
+      - id: end-of-file-fixer
+        exclude: \.(xcodeproj|xcworkspace|pbxproj)$
+      - id: check-yaml
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+

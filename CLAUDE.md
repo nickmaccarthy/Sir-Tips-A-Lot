@@ -88,6 +88,55 @@ agvtool what-marketing-version
 agvtool new-marketing-version 1.1.0
 ```
 
+### Run unit tests
+```bash
+# Use any available iOS Simulator (recommended for portability)
+xcodebuild test \
+  -project "TipCal/Tip Calculator/Tip Calculator.xcodeproj" \
+  -scheme "Tip Calculator" \
+  -destination 'platform=iOS Simulator,OS=latest,name=iPhone 17 Pro'
+
+# Or use generic destination
+xcodebuild test \
+  -project "TipCal/Tip Calculator/Tip Calculator.xcodeproj" \
+  -scheme "Tip Calculator" \
+  -destination generic/platform=iOS\ Simulator
+```
+
+## Testing
+
+This project maintains comprehensive unit tests. **All tests must pass before merging any PR.**
+
+### Testing Requirements
+
+1. **All business logic must have unit tests** — ViewModels, Models, and utility functions
+2. **Run tests before committing** — Use the pre-commit hook or run manually
+3. **Write tests for new features** — Any new calculation logic or data handling needs tests
+4. **Maintain test coverage** — Don't remove tests without replacement
+
+### Test Structure
+
+```
+TipCal/Tip Calculator/Tip CalculatorTests/
+├── TipCalculatorViewModelTests.swift  # ViewModel calculations & state
+├── SavedBillTests.swift               # Model encoding/decoding
+└── NumberParsingTests.swift           # Receipt scanner parsing
+```
+
+### Pre-commit Hook Setup
+
+This project uses [pre-commit](https://pre-commit.com/) for automatic test runs before commits:
+```bash
+# Install pre-commit (if not already installed)
+brew install pre-commit
+
+# Enable hooks for this repo
+pre-commit install
+
+# Run manually on all files
+pre-commit run --all-files
+```
+
 ## Easter Egg
 
 Tap the app logo 4 times to reveal the App Info view (version/build number).
