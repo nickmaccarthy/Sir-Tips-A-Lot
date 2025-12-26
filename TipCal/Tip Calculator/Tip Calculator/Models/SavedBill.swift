@@ -17,7 +17,13 @@ struct SavedBill: Codable, Identifiable {
     let totalAmount: Double
     let numberOfPeople: Int
     let amountPerPerson: Double
-    
+
+    /// The name of the location/restaurant where the bill was saved (e.g., "Joe's Pizza")
+    let locationName: String?
+
+    /// The sentiment emoji used when calculating the tip (e.g., "🤩")
+    let sentiment: String?
+
     init(
         id: UUID = UUID(),
         date: Date = Date(),
@@ -26,7 +32,9 @@ struct SavedBill: Codable, Identifiable {
         tipAmount: Double,
         totalAmount: Double,
         numberOfPeople: Int,
-        amountPerPerson: Double
+        amountPerPerson: Double,
+        locationName: String? = nil,
+        sentiment: String? = nil
     ) {
         self.id = id
         self.date = date
@@ -36,8 +44,7 @@ struct SavedBill: Codable, Identifiable {
         self.totalAmount = totalAmount
         self.numberOfPeople = numberOfPeople
         self.amountPerPerson = amountPerPerson
+        self.locationName = locationName
+        self.sentiment = sentiment
     }
 }
-
-
-
