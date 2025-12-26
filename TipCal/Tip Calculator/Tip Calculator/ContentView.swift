@@ -13,10 +13,17 @@ struct ContentView: View {
     @State private var showTipJar = false
     @State private var showAppInfo = false
     @State private var showHistory = false
+    @State private var showSettings = false
     @State private var logoTapCount = 0
     @State private var showSaveConfirmation = false
     @State private var historyButtonHighlight = false
+    @State private var isShowingScanner = false
     @FocusState private var isInputFocused: Bool
+    
+    // MARK: - Tip Preferences (read from @AppStorage)
+    @AppStorage("tip_bad") private var tipBad: Double = 15.0
+    @AppStorage("tip_ok") private var tipOk: Double = 20.0
+    @AppStorage("tip_good") private var tipGood: Double = 25.0
     
     // MARK: - Haptic Feedback
     private func triggerHaptic(style: UIImpactFeedbackGenerator.FeedbackStyle = .medium) {
@@ -24,6 +31,97 @@ struct ContentView: View {
         let generator = UIImpactFeedbackGenerator(style: style)
         generator.impactOccurred()
         #endif
+    }
+    
+    // MARK: - Tip Selection Card (extracted to help type checker)
+    @ViewBuilder
+    private var tipSelectionCard: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 16) {
+                Label("How was the service?", systemImage: "face.smiling")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(.white.opacity(0.7))
+                
+                HStack(spacing: 10) {
+                    // Bad Service
+                    SentimentButton(
+                        emoji: "😢",
+                        percentage: Int(tipBad),
+                        isSelected: !viewModel.isCustomTipSelected && viewModel.selectedSentiment == "😢"
+                    ) {
+                        triggerHaptic(style: .medium)
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            viewModel.selectTipWithSentiment(tipBad, sentiment: "😢")
+                        }
+                    }
+                    
+                    // Ok Service
+                    SentimentButton(
+                        emoji: "😐",
+                        percentage: Int(tipOk),
+                        isSelected: !viewModel.isCustomTipSelected && viewModel.selectedSentiment == "😐"
+                    ) {
+                        triggerHaptic(style: .medium)
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            viewModel.selectTipWithSentiment(tipOk, sentiment: "😐")
+                        }
+                    }
+                    
+                    // Great Service
+                    SentimentButton(
+                        emoji: "🤩",
+                        percentage: Int(tipGood),
+                        isSelected: !viewModel.isCustomTipSelected && viewModel.selectedSentiment == "🤩"
+                    ) {
+                        triggerHaptic(style: .medium)
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            viewModel.selectTipWithSentiment(tipGood, sentiment: "🤩")
+                        }
+                    }
+                    
+                    // Custom Tip Button
+                    CustomTipButton(
+                        isSelected: viewModel.isCustomTipSelected
+                    ) {
+                        triggerHaptic(style: .medium)
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            viewModel.selectCustomTip()
+                        }
+                    }
+                }
+                
+                // Custom Tip Input (shown when custom is selected)
+                if viewModel.isCustomTipSelected {
+                    HStack(spacing: 8) {
+                        Image(systemName: "pencil")
+                            .foregroundColor(.mint)
+                        
+                        TextField("0", text: $viewModel.customTipString)
+                            .focused($isInputFocused)
+                            #if os(iOS)
+                            .keyboardType(.decimalPad)
+                            #endif
+                            .font(.system(size: 24, weight: .bold, design: .rounded))
+                            .foregroundColor(.white)
+                            .frame(width: 60)
+                            .multilineTextAlignment(.center)
+                        
+                        Text("%")
+                            .font(.system(size: 24, weight: .bold, design: .rounded))
+                            .foregroundColor(.mint)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(Color.white.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(Color.mint.opacity(0.5), lineWidth: 1)
+                    )
+                    .transition(.opacity.combined(with: .scale(scale: 0.9)))
+                }
+            }
+        }
     }
     
     // MARK: - Share Text Generator
@@ -76,6 +174,19 @@ struct ContentView: View {
                                 .foregroundColor(.white.opacity(0.5))
                         }
                         Spacer()
+                        
+                        // Settings Button
+                        Button {
+                            triggerHaptic(style: .light)
+                            showSettings = true
+                        } label: {
+                            Image(systemName: "gearshape.fill")
+                                .font(.system(size: 18, weight: .medium))
+                                .foregroundColor(.white.opacity(0.7))
+                                .frame(width: 40, height: 40)
+                                .background(Color.white.opacity(0.1))
+                                .clipShape(Circle())
+                        }
                         
                         // History Button
                         Button {
@@ -136,73 +247,31 @@ struct ContentView: View {
                                     .font(.system(size: 48, weight: .bold, design: .rounded))
                                     .foregroundColor(.white)
                                     .multilineTextAlignment(.leading)
+                                
+                                Spacer()
+                                
+                                // Scanner button
+                                Button {
+                                    triggerHaptic(style: .light)
+                                    isShowingScanner = true
+                                } label: {
+                                    Image(systemName: "text.viewfinder")
+                                        .font(.title2)
+                                        .foregroundColor(.mint)
+                                        .padding(10)
+                                        .background(Color.white.opacity(0.1))
+                                        .clipShape(Circle())
+                                        .overlay(
+                                            Circle()
+                                                .stroke(Color.mint.opacity(0.3), lineWidth: 1)
+                                        )
+                                }
                             }
                         }
                     }
                     
-                    // Tip Selection Card
-                    GlassCard {
-                        VStack(alignment: .leading, spacing: 16) {
-                            Label("Select Tip", systemImage: "percent")
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundColor(.white.opacity(0.7))
-                            
-                            HStack(spacing: 10) {
-                                ForEach([18, 20, 25], id: \.self) { percentage in
-                                    TipButton(
-                                        percentage: percentage,
-                                        isSelected: !viewModel.isCustomTipSelected && viewModel.selectedTipPercentage == Double(percentage)
-                                    ) {
-                                        triggerHaptic(style: .medium)
-                                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                            viewModel.selectTipPercentage(Double(percentage))
-                                        }
-                                    }
-                                }
-                                
-                                // Custom Tip Button
-                                CustomTipButton(
-                                    isSelected: viewModel.isCustomTipSelected
-                                ) {
-                                    triggerHaptic(style: .medium)
-                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                        viewModel.selectCustomTip()
-                                    }
-                                }
-                            }
-                            
-                            // Custom Tip Input (shown when custom is selected)
-                            if viewModel.isCustomTipSelected {
-                                HStack(spacing: 8) {
-                                    Image(systemName: "pencil")
-                                        .foregroundColor(.mint)
-                                    
-                                    TextField("0", text: $viewModel.customTipString)
-                                        .focused($isInputFocused)
-                                        #if os(iOS)
-                                        .keyboardType(.decimalPad)
-                                        #endif
-                                        .font(.system(size: 24, weight: .bold, design: .rounded))
-                                        .foregroundColor(.white)
-                                        .frame(width: 60)
-                                        .multilineTextAlignment(.center)
-                                    
-                                    Text("%")
-                                        .font(.system(size: 24, weight: .bold, design: .rounded))
-                                        .foregroundColor(.mint)
-                                }
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 12)
-                                .background(Color.white.opacity(0.1))
-                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                        .stroke(Color.mint.opacity(0.5), lineWidth: 1)
-                                )
-                                .transition(.opacity.combined(with: .scale(scale: 0.9)))
-                            }
-                        }
-                    }
+                    // Tip Selection Card (Sentiment-based)
+                    tipSelectionCard
                     
                     // Options Card
                     GlassCard {
@@ -474,6 +543,38 @@ struct ContentView: View {
             }
             .sheet(isPresented: $showHistory) {
                 HistoryView(viewModel: viewModel)
+            }
+            .sheet(isPresented: $showSettings) {
+                SettingsView()
+            }
+            .sheet(isPresented: $isShowingScanner) {
+                ScannerContainerView { scannedAmount in
+                    viewModel.billAmountString = String(format: "%.2f", scannedAmount)
+                }
+            }
+            .onAppear {
+                // Initialize tip percentage based on default sentiment (Good)
+                if viewModel.selectedSentiment == "🤩" {
+                    viewModel.selectedTipPercentage = tipGood
+                }
+            }
+            .onChange(of: tipGood) { _, newValue in
+                // Update tip percentage if Great sentiment is currently selected
+                if viewModel.selectedSentiment == "🤩" {
+                    viewModel.selectedTipPercentage = newValue
+                }
+            }
+            .onChange(of: tipOk) { _, newValue in
+                // Update tip percentage if Ok sentiment is currently selected
+                if viewModel.selectedSentiment == "😐" {
+                    viewModel.selectedTipPercentage = newValue
+                }
+            }
+            .onChange(of: tipBad) { _, newValue in
+                // Update tip percentage if Bad sentiment is currently selected
+                if viewModel.selectedSentiment == "😢" {
+                    viewModel.selectedTipPercentage = newValue
+                }
             }
             .onChange(of: isInputFocused) { _, newValue in
                 if newValue {
@@ -960,7 +1061,52 @@ struct GlassCard<Content: View>: View {
     }
 }
 
-// MARK: - Tip Button
+// MARK: - Sentiment Button
+struct SentimentButton: View {
+    let emoji: String
+    let percentage: Int
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Text(emoji)
+                    .font(.system(size: 28))
+                    .scaleEffect(isSelected ? 1.2 : 1.0)
+                
+                Text("\(percentage)%")
+                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .foregroundColor(isSelected ? .black : .white.opacity(0.7))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(
+                Group {
+                    if isSelected {
+                        LinearGradient(
+                            colors: [Color.mint, Color.teal],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    } else {
+                        Color.white.opacity(0.1)
+                    }
+                }
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(isSelected ? Color.mint.opacity(0.8) : Color.white.opacity(0.2), lineWidth: isSelected ? 2 : 1)
+            )
+            .shadow(color: isSelected ? Color.mint.opacity(0.4) : Color.clear, radius: 8, x: 0, y: 2)
+        }
+        .buttonStyle(ScaleButtonStyle())
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
+    }
+}
+
+// MARK: - Tip Button (Legacy - kept for reference)
 struct TipButton: View {
     let percentage: Int
     let isSelected: Bool

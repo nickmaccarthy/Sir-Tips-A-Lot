@@ -16,6 +16,7 @@ class TipCalculatorViewModel: ObservableObject {
     @Published var numberOfPeopleString: String = "1"
     @Published var isCustomTipSelected: Bool = false
     @Published var customTipString: String = ""
+    @Published var selectedSentiment: String? = "🤩" // Default to "Good" sentiment
     @Published var recentBills: [SavedBill] = []
     @Published var didAutoSave: Bool = false
     
@@ -99,8 +100,15 @@ class TipCalculatorViewModel: ObservableObject {
         isCustomTipSelected = false
     }
     
+    func selectTipWithSentiment(_ percentage: Double, sentiment: String) {
+        selectedTipPercentage = percentage
+        selectedSentiment = sentiment
+        isCustomTipSelected = false
+    }
+    
     func selectCustomTip() {
         isCustomTipSelected = true
+        selectedSentiment = nil
     }
     
     // MARK: - Bill History Persistence
