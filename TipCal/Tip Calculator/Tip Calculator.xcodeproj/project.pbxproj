@@ -12,6 +12,8 @@
 		41D161A52EF83D330004C800 /* TipCalculatorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161A42EF83D330004C800 /* TipCalculatorViewModel.swift */; };
 		41D161A72EF83D330004C800 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 41D161A62EF83D330004C800 /* Assets.xcassets */; };
 		41D161B02EF83D330004C800 /* SavedBill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161AF2EF83D330004C800 /* SavedBill.swift */; };
+		41D161B12EF83D330004C800 /* ScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161B22EF83D330004C800 /* ScannerView.swift */; };
+		41D161B42EF83D330004C800 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161B52EF83D330004C800 /* SettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -21,6 +23,8 @@
 		41D161A42EF83D330004C800 /* TipCalculatorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TipCalculatorViewModel.swift; sourceTree = "<group>"; };
 		41D161A62EF83D330004C800 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		41D161AF2EF83D330004C800 /* SavedBill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedBill.swift; sourceTree = "<group>"; };
+		41D161B22EF83D330004C800 /* ScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerView.swift; sourceTree = "<group>"; };
+		41D161B52EF83D330004C800 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,6 +58,7 @@
 			isa = PBXGroup;
 			children = (
 				41D161AE2EF83D330004C800 /* Models */,
+				41D161B32EF83D330004C800 /* Views */,
 				41D161A02EF83D330004C800 /* Tip_CalculatorApp.swift */,
 				41D161A22EF83D330004C800 /* ContentView.swift */,
 				41D161A42EF83D330004C800 /* TipCalculatorViewModel.swift */,
@@ -68,6 +73,15 @@
 				41D161AF2EF83D330004C800 /* SavedBill.swift */,
 			);
 			path = Models;
+			sourceTree = "<group>";
+		};
+		41D161B32EF83D330004C800 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				41D161B22EF83D330004C800 /* ScannerView.swift */,
+				41D161B52EF83D330004C800 /* SettingsView.swift */,
+			);
+			path = Views;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -146,6 +160,8 @@
 				41D161A32EF83D330004C800 /* ContentView.swift in Sources */,
 				41D161A52EF83D330004C800 /* TipCalculatorViewModel.swift in Sources */,
 				41D161B02EF83D330004C800 /* SavedBill.swift in Sources */,
+				41D161B12EF83D330004C800 /* ScannerView.swift in Sources */,
+				41D161B42EF83D330004C800 /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -286,6 +302,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Sir Tips Alot";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Sir Tips-A-Lot needs camera access to scan receipts and detect bill totals.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -315,6 +332,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Sir Tips Alot";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Sir Tips-A-Lot needs camera access to scan receipts and detect bill totals.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

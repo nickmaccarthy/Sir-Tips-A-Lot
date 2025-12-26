@@ -258,3 +258,5 @@ struct UnsupportedScannerView: View {
     }
 }
 
+
+
