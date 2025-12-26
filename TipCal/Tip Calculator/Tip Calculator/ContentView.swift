@@ -928,6 +928,14 @@ struct HistoryView: View {
                     }
                     .listStyle(.plain)
                     .scrollContentBackground(.hidden)
+                    
+                    // Summary Footer Card
+                    HistorySummaryCard(
+                        lifetimeTips: viewModel.lifetimeTips,
+                        lifetimeSpend: viewModel.lifetimeSpend
+                    )
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 8)
                 }
                 
                 // Done Button
@@ -1035,6 +1043,91 @@ struct HistoryRowView: View {
             }
         }
         .padding(.vertical, 8)
+    }
+}
+
+// MARK: - History Summary Card
+struct HistorySummaryCard: View {
+    let lifetimeTips: Double
+    let lifetimeSpend: Double
+    
+    private static let currencyFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = "USD"
+        return formatter
+    }()
+    
+    private func formatCurrency(_ amount: Double) -> String {
+        Self.currencyFormatter.string(from: NSNumber(value: amount)) ?? "$0.00"
+    }
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            // Primary Metric: Total Tips (highlighted)
+            HStack(spacing: 12) {
+                Image(systemName: "hand.thumbsup.fill")
+                    .font(.system(size: 28))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color.mint, Color.teal],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Total Tips Given")
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .foregroundColor(.white.opacity(0.6))
+                    
+                    Text(formatCurrency(lifetimeTips))
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [Color.mint, Color.teal],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                }
+                
+                Spacer()
+            }
+            
+            // Divider
+            Rectangle()
+                .fill(Color.white.opacity(0.1))
+                .frame(height: 1)
+            
+            // Secondary Metric: Total Spent
+            HStack(spacing: 12) {
+                Image(systemName: "creditcard.fill")
+                    .font(.system(size: 20))
+                    .foregroundColor(.white.opacity(0.5))
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Total Spent")
+                        .font(.system(size: 11, weight: .medium, design: .rounded))
+                        .foregroundColor(.white.opacity(0.5))
+                    
+                    Text(formatCurrency(lifetimeSpend))
+                        .font(.system(size: 18, weight: .semibold, design: .rounded))
+                        .foregroundColor(.white.opacity(0.8))
+                }
+                
+                Spacer()
+            }
+        }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                )
+        )
     }
 }
 
