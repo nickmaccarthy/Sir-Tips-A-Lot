@@ -11,20 +11,23 @@ struct ContentView: View {
     @StateObject private var viewModel = TipCalculatorViewModel()
     @State private var animateGradient = false
     @State private var showTipJar = false
-    @State private var showAppInfo = false
     @State private var showHistory = false
     @State private var showSettings = false
-    @State private var logoTapCount = 0
     @State private var showSaveConfirmation = false
     @State private var historyButtonHighlight = false
     @State private var isShowingScanner = false
     @FocusState private var isInputFocused: Bool
-    
+
     // MARK: - Tip Preferences (read from @AppStorage)
     @AppStorage("tip_bad") private var tipBad: Double = 15.0
     @AppStorage("tip_ok") private var tipOk: Double = 20.0
     @AppStorage("tip_good") private var tipGood: Double = 25.0
-    
+
+    // MARK: - Custom Emojis (read from @AppStorage)
+    @AppStorage("emoji_bad") private var emojiBad: String = "😢"
+    @AppStorage("emoji_ok") private var emojiOk: String = "😐"
+    @AppStorage("emoji_good") private var emojiGood: String = "🤩"
+
     // MARK: - Haptic Feedback
     private func triggerHaptic(style: UIImpactFeedbackGenerator.FeedbackStyle = .medium) {
         #if os(iOS)
@@ -32,7 +35,19 @@ struct ContentView: View {
         generator.impactOccurred()
         #endif
     }
-    
+
+    // MARK: - Sentiment Emoji Helper
+    private func getCurrentSentimentEmoji() -> String? {
+        guard let sentiment = viewModel.selectedSentiment else { return nil }
+
+        switch sentiment {
+        case "bad": return emojiBad
+        case "ok": return emojiOk
+        case "good": return emojiGood
+        default: return nil
+        }
+    }
+
     // MARK: - Tip Selection Card (extracted to help type checker)
     @ViewBuilder
     private var tipSelectionCard: some View {
@@ -41,44 +56,44 @@ struct ContentView: View {
                 Label("How was the service?", systemImage: "face.smiling")
                     .font(.subheadline.weight(.semibold))
                     .foregroundColor(.white.opacity(0.7))
-                
+
                 HStack(spacing: 10) {
                     // Bad Service
                     SentimentButton(
-                        emoji: "😢",
+                        emoji: emojiBad,
                         percentage: Int(tipBad),
-                        isSelected: !viewModel.isCustomTipSelected && viewModel.selectedSentiment == "😢"
+                        isSelected: !viewModel.isCustomTipSelected && viewModel.selectedSentiment == "bad"
                     ) {
                         triggerHaptic(style: .medium)
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            viewModel.selectTipWithSentiment(tipBad, sentiment: "😢")
+                            viewModel.selectTipWithSentiment(tipBad, sentiment: "bad")
                         }
                     }
-                    
+
                     // Ok Service
                     SentimentButton(
-                        emoji: "😐",
+                        emoji: emojiOk,
                         percentage: Int(tipOk),
-                        isSelected: !viewModel.isCustomTipSelected && viewModel.selectedSentiment == "😐"
+                        isSelected: !viewModel.isCustomTipSelected && viewModel.selectedSentiment == "ok"
                     ) {
                         triggerHaptic(style: .medium)
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            viewModel.selectTipWithSentiment(tipOk, sentiment: "😐")
+                            viewModel.selectTipWithSentiment(tipOk, sentiment: "ok")
                         }
                     }
-                    
+
                     // Great Service
                     SentimentButton(
-                        emoji: "🤩",
+                        emoji: emojiGood,
                         percentage: Int(tipGood),
-                        isSelected: !viewModel.isCustomTipSelected && viewModel.selectedSentiment == "🤩"
+                        isSelected: !viewModel.isCustomTipSelected && viewModel.selectedSentiment == "good"
                     ) {
                         triggerHaptic(style: .medium)
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            viewModel.selectTipWithSentiment(tipGood, sentiment: "🤩")
+                            viewModel.selectTipWithSentiment(tipGood, sentiment: "good")
                         }
                     }
-                    
+
                     // Custom Tip Button
                     CustomTipButton(
                         isSelected: viewModel.isCustomTipSelected
@@ -89,13 +104,13 @@ struct ContentView: View {
                         }
                     }
                 }
-                
+
                 // Custom Tip Input (shown when custom is selected)
                 if viewModel.isCustomTipSelected {
                     HStack(spacing: 8) {
                         Image(systemName: "pencil")
                             .foregroundColor(.mint)
-                        
+
                         TextField("0", text: $viewModel.customTipString)
                             .focused($isInputFocused)
                             #if os(iOS)
@@ -105,7 +120,7 @@ struct ContentView: View {
                             .foregroundColor(.white)
                             .frame(width: 60)
                             .multilineTextAlignment(.center)
-                        
+
                         Text("%")
                             .font(.system(size: 24, weight: .bold, design: .rounded))
                             .foregroundColor(.mint)
@@ -123,25 +138,25 @@ struct ContentView: View {
             }
         }
     }
-    
+
     // MARK: - Share Text Generator
     private var shareText: String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
         formatter.currencyCode = "USD"
-        
+
         let bill = formatter.string(from: NSNumber(value: viewModel.billValue)) ?? "$0.00"
         let tip = formatter.string(from: NSNumber(value: viewModel.tipAmount)) ?? "$0.00"
         let total = formatter.string(from: NSNumber(value: viewModel.totalAmount)) ?? "$0.00"
         let perPerson = formatter.string(from: NSNumber(value: viewModel.amountPerPerson)) ?? "$0.00"
-        
+
         if viewModel.numberOfPeopleValue > 1 {
             return "Bill: \(bill) | Tip: \(tip) (\(Int(viewModel.effectiveTipPercentage))%) | Total: \(total) | You owe: \(perPerson) — via Sir Tips-A-Lot"
         } else {
             return "Bill: \(bill) | Tip: \(tip) (\(Int(viewModel.effectiveTipPercentage))%) | Total: \(total) — via Sir Tips-A-Lot"
         }
     }
-    
+
     var body: some View {
         ZStack {
             // Animated gradient background
@@ -160,7 +175,7 @@ struct ContentView: View {
                     animateGradient.toggle()
                 }
             }
-            
+
             ScrollView {
                 VStack(spacing: 24) {
                     // Header
@@ -174,20 +189,26 @@ struct ContentView: View {
                                 .foregroundColor(.white.opacity(0.5))
                         }
                         Spacer()
-                        
-                        // Settings Button
+
+                        // Reset Button
                         Button {
-                            triggerHaptic(style: .light)
-                            showSettings = true
+                            triggerHaptic(style: .medium)
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                viewModel.resetAll()
+                                // Also update to "Ok" tip percentage
+                                viewModel.selectedTipPercentage = tipOk
+                            }
                         } label: {
-                            Image(systemName: "gearshape.fill")
+                            Image(systemName: "arrow.counterclockwise")
                                 .font(.system(size: 18, weight: .medium))
                                 .foregroundColor(.white.opacity(0.7))
                                 .frame(width: 40, height: 40)
                                 .background(Color.white.opacity(0.1))
                                 .clipShape(Circle())
                         }
-                        
+                        .opacity(viewModel.billValue > 0 ? 1 : 0.4)
+                        .disabled(viewModel.billValue <= 0)
+
                         // History Button
                         Button {
                             triggerHaptic(style: .light)
@@ -206,39 +227,32 @@ struct ContentView: View {
                                 .scaleEffect(historyButtonHighlight ? 1.1 : 1.0)
                                 .animation(.easeInOut(duration: 0.3), value: historyButtonHighlight)
                         }
-                        
+
                         Image("InAppLogo")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 56, height: 56)
                             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                             .onTapGesture {
-                                logoTapCount += 1
-                                if logoTapCount >= 4 {
-                                    logoTapCount = 0
-                                    showAppInfo = true
-                                }
-                                // Reset tap count after 2 seconds of inactivity
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                                    logoTapCount = 0
-                                }
+                                triggerHaptic(style: .light)
+                                showSettings = true
                             }
                     }
                     .padding(.horizontal, 24)
                     .padding(.top, 20)
-                    
+
                     // Bill Amount Card
                     GlassCard {
                         VStack(alignment: .leading, spacing: 12) {
                             Label("Bill Amount", systemImage: "receipt")
                                 .font(.subheadline.weight(.semibold))
                                 .foregroundColor(.white.opacity(0.7))
-                            
+
                             HStack(alignment: .firstTextBaseline, spacing: 4) {
                                 Text("$")
                                     .font(.system(size: 36, weight: .light, design: .rounded))
                                     .foregroundColor(.mint)
-                                
+
                                 TextField("0.00", text: $viewModel.billAmountString)
                                     .focused($isInputFocused)
                                     #if os(iOS)
@@ -247,9 +261,9 @@ struct ContentView: View {
                                     .font(.system(size: 48, weight: .bold, design: .rounded))
                                     .foregroundColor(.white)
                                     .multilineTextAlignment(.leading)
-                                
+
                                 Spacer()
-                                
+
                                 // Scanner button
                                 Button {
                                     triggerHaptic(style: .light)
@@ -269,10 +283,10 @@ struct ContentView: View {
                             }
                         }
                     }
-                    
+
                     // Tip Selection Card (Sentiment-based)
                     tipSelectionCard
-                    
+
                     // Options Card
                     GlassCard {
                         VStack(spacing: 20) {
@@ -281,9 +295,9 @@ struct ContentView: View {
                                 Label("Round Up Tip", systemImage: "arrow.up.circle")
                                     .font(.subheadline.weight(.semibold))
                                     .foregroundColor(.white)
-                                
+
                                 Spacer()
-                                
+
                                 Toggle("", isOn: $viewModel.roundUp)
                                     .tint(.mint)
                                     .labelsHidden()
@@ -291,18 +305,18 @@ struct ContentView: View {
                                         triggerHaptic(style: .light)
                                     }
                             }
-                            
+
                             Divider()
                                 .background(Color.white.opacity(0.2))
-                            
+
                             // Split Check
                             HStack {
                                 Label("Split Between", systemImage: "person.2")
                                     .font(.subheadline.weight(.semibold))
                                     .foregroundColor(.white)
-                                
+
                                 Spacer()
-                                
+
                                 HStack(spacing: 16) {
                                     Button {
                                         triggerHaptic(style: .light)
@@ -316,12 +330,12 @@ struct ContentView: View {
                                             .foregroundColor(.mint.opacity(viewModel.numberOfPeopleValue > 1 ? 1 : 0.3))
                                     }
                                     .disabled(viewModel.numberOfPeopleValue <= 1)
-                                    
+
                                     Text("\(viewModel.numberOfPeopleValue)")
                                         .font(.system(size: 24, weight: .bold, design: .rounded))
                                         .foregroundColor(.white)
                                         .frame(minWidth: 40)
-                                    
+
                                     Button {
                                         triggerHaptic(style: .light)
                                         let current = Int(viewModel.numberOfPeopleString) ?? 1
@@ -335,7 +349,7 @@ struct ContentView: View {
                             }
                         }
                     }
-                    
+
                     // Results Card
                     VStack(spacing: 0) {
                         // Tip Amount
@@ -345,11 +359,11 @@ struct ContentView: View {
                             amount: viewModel.tipAmount,
                             style: .regular
                         )
-                        
+
                         Divider()
                             .background(Color.white.opacity(0.1))
                             .padding(.vertical, 12)
-                        
+
                         // Subtotal
                         ResultRow(
                             icon: "plus.circle.fill",
@@ -357,11 +371,11 @@ struct ContentView: View {
                             amount: viewModel.billValue,
                             style: .regular
                         )
-                        
+
                         Divider()
                             .background(Color.white.opacity(0.1))
                             .padding(.vertical, 12)
-                        
+
                         // Total
                         ResultRow(
                             icon: "creditcard.fill",
@@ -369,13 +383,13 @@ struct ContentView: View {
                             amount: viewModel.totalAmount,
                             style: .total
                         )
-                        
+
                         // Per Person (if splitting)
                         if viewModel.numberOfPeopleValue > 1 {
                             Divider()
                                 .background(Color.white.opacity(0.1))
                                 .padding(.vertical, 12)
-                            
+
                             ResultRow(
                                 icon: "person.fill",
                                 label: "Per Person",
@@ -383,7 +397,7 @@ struct ContentView: View {
                                 style: .highlight
                             )
                         }
-                        
+
                         // Share Button
                         ShareLink(item: shareText) {
                             HStack(spacing: 8) {
@@ -431,17 +445,25 @@ struct ContentView: View {
                             )
                     )
                     .padding(.horizontal, 20)
-                    
+
                     // Save Button
                     Button {
                         triggerHaptic(style: .medium)
-                        viewModel.saveBill()
-                        
+
+                        // Get current sentiment emoji
+                        let sentimentEmoji = getCurrentSentimentEmoji()
+
+                        // Save with async location fetch
+                        Task {
+                            let locationName = await viewModel.locationManager.fetchCurrentLocationName()
+                            viewModel.saveBill(locationName: locationName, sentimentEmoji: sentimentEmoji)
+                        }
+
                         // Show confirmation
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                             showSaveConfirmation = true
                         }
-                        
+
                         // Reset after delay
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                             withAnimation(.easeOut(duration: 0.2)) {
@@ -479,7 +501,7 @@ struct ContentView: View {
                     .padding(.top, 16)
                     .opacity(viewModel.billValue > 0 ? 1 : 0.4)
                     .disabled(viewModel.billValue <= 0 || showSaveConfirmation)
-                    
+
                     #if DEBUG
                     // Tip Jar Button (hidden in Release builds for App Store review)
                     Button {
@@ -504,7 +526,7 @@ struct ContentView: View {
                     .buttonStyle(ScaleButtonStyle())
                     .padding(.top, 8)
                     #endif
-                    
+
                     Spacer(minLength: 40)
                 }
             }
@@ -538,9 +560,6 @@ struct ContentView: View {
                 TipJarView()
             }
             #endif
-            .sheet(isPresented: $showAppInfo) {
-                AppInfoView()
-            }
             .sheet(isPresented: $showHistory) {
                 HistoryView(viewModel: viewModel)
             }
@@ -554,25 +573,28 @@ struct ContentView: View {
             }
             .onAppear {
                 // Initialize tip percentage based on default sentiment (Good)
-                if viewModel.selectedSentiment == "🤩" {
+                if viewModel.selectedSentiment == "good" {
                     viewModel.selectedTipPercentage = tipGood
                 }
+
+                // Request location permission early so it's ready when saving
+                viewModel.locationManager.requestPermission()
             }
             .onChange(of: tipGood) { _, newValue in
                 // Update tip percentage if Great sentiment is currently selected
-                if viewModel.selectedSentiment == "🤩" {
+                if viewModel.selectedSentiment == "good" {
                     viewModel.selectedTipPercentage = newValue
                 }
             }
             .onChange(of: tipOk) { _, newValue in
                 // Update tip percentage if Ok sentiment is currently selected
-                if viewModel.selectedSentiment == "😐" {
+                if viewModel.selectedSentiment == "ok" {
                     viewModel.selectedTipPercentage = newValue
                 }
             }
             .onChange(of: tipBad) { _, newValue in
                 // Update tip percentage if Bad sentiment is currently selected
-                if viewModel.selectedSentiment == "😢" {
+                if viewModel.selectedSentiment == "bad" {
                     viewModel.selectedTipPercentage = newValue
                 }
             }
@@ -587,7 +609,7 @@ struct ContentView: View {
                     withAnimation(.easeInOut(duration: 0.3)) {
                         historyButtonHighlight = true
                     }
-                    
+
                     // Fade out after a moment
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                         withAnimation(.easeOut(duration: 0.5)) {
@@ -603,12 +625,12 @@ struct ContentView: View {
 // MARK: - Tip Jar View
 struct TipJarView: View {
     @Environment(\.dismiss) private var dismiss
-    
+
     // Your payment usernames
     let venmoUsername = "NickMacCarthy"
     let cashAppUsername = "$NickMacCarthy"  // Include the $ for Cash App
     let paypalUsername = "nickmaccarthy"
-    
+
     var body: some View {
         ZStack {
             // Background
@@ -621,7 +643,7 @@ struct TipJarView: View {
                 endPoint: .bottom
             )
             .ignoresSafeArea()
-            
+
             VStack(spacing: 24) {
                 // Header
                 VStack(spacing: 8) {
@@ -634,11 +656,11 @@ struct TipJarView: View {
                                 endPoint: .bottomTrailing
                             )
                         )
-                    
+
                     Text("Tip Jar")
                         .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
-                    
+
                     Text("Enjoying this app? Consider buying me a coffee! ☕")
                         .font(.subheadline)
                         .foregroundColor(.white.opacity(0.7))
@@ -646,9 +668,9 @@ struct TipJarView: View {
                         .padding(.horizontal)
                 }
                 .padding(.top, 40)
-                
+
                 Spacer()
-                
+
                 // Payment Options
                 VStack(spacing: 16) {
                     PaymentButton(
@@ -659,7 +681,7 @@ struct TipJarView: View {
                     ) {
                         openURL("https://venmo.com/u/\(venmoUsername)")
                     }
-                    
+
                     PaymentButton(
                         title: "Cash App",
                         subtitle: cashAppUsername,
@@ -668,7 +690,7 @@ struct TipJarView: View {
                     ) {
                         openURL("https://cash.app/\(cashAppUsername)")
                     }
-                    
+
                     PaymentButton(
                         title: "PayPal",
                         subtitle: "@\(paypalUsername)",
@@ -679,9 +701,9 @@ struct TipJarView: View {
                     }
                 }
                 .padding(.horizontal, 30)
-                
+
                 Spacer()
-                
+
                 // Close Button
                 Button {
                     dismiss()
@@ -696,7 +718,7 @@ struct TipJarView: View {
         .presentationDetents([.medium])
         .presentationDragIndicator(.visible)
     }
-    
+
     private func openURL(_ urlString: String) {
         if let url = URL(string: urlString) {
             #if os(iOS)
@@ -713,26 +735,26 @@ struct PaymentButton: View {
     let icon: String
     let color: Color
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 16) {
                 Image(systemName: icon)
                     .font(.system(size: 28))
                     .foregroundColor(.white)
-                
+
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
                         .font(.system(size: 18, weight: .semibold, design: .rounded))
                         .foregroundColor(.white)
-                    
+
                     Text(subtitle)
                         .font(.system(size: 13, weight: .medium, design: .rounded))
                         .foregroundColor(.white.opacity(0.7))
                 }
-                
+
                 Spacer()
-                
+
                 Image(systemName: "arrow.up.right")
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.white.opacity(0.6))
@@ -749,15 +771,15 @@ struct PaymentButton: View {
 // MARK: - App Info View
 struct AppInfoView: View {
     @Environment(\.dismiss) private var dismiss
-    
+
     var appVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
     }
-    
+
     var buildNumber: String {
         Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
     }
-    
+
     var body: some View {
         ZStack {
             // Background
@@ -770,10 +792,10 @@ struct AppInfoView: View {
                 endPoint: .bottom
             )
             .ignoresSafeArea()
-            
+
             VStack(spacing: 24) {
                 Spacer()
-                
+
                 // App Icon
                 Image("InAppLogo")
                     .resizable()
@@ -781,12 +803,12 @@ struct AppInfoView: View {
                     .frame(width: 100, height: 100)
                     .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
                     .shadow(color: .black.opacity(0.3), radius: 10, y: 5)
-                
+
                 // App Name
                 Text("Sir Tips-A-Lot")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
-                
+
                 // Version Info
                 VStack(spacing: 12) {
                     InfoRow(label: "Version", value: appVersion)
@@ -796,14 +818,14 @@ struct AppInfoView: View {
                 .background(Color.white.opacity(0.1))
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 .padding(.horizontal, 40)
-                
+
                 Spacer()
-                
+
                 // Footer
                 Text("Made with ❤️ by Nick MacCarthy - nickmaccarthy@gmail.com")
                     .font(.footnote)
                     .foregroundColor(.white.opacity(0.5))
-                
+
                 // Close Button
                 Button {
                     dismiss()
@@ -834,15 +856,15 @@ struct AppInfoView: View {
 struct InfoRow: View {
     let label: String
     let value: String
-    
+
     var body: some View {
         HStack {
             Text(label)
                 .font(.system(size: 16, weight: .medium, design: .rounded))
                 .foregroundColor(.white.opacity(0.7))
-            
+
             Spacer()
-            
+
             Text(value)
                 .font(.system(size: 16, weight: .bold, design: .monospaced))
                 .foregroundColor(.mint)
@@ -854,7 +876,7 @@ struct InfoRow: View {
 struct HistoryView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var viewModel: TipCalculatorViewModel
-    
+
     var body: some View {
         ZStack {
             // Background
@@ -867,7 +889,7 @@ struct HistoryView: View {
                 endPoint: .bottom
             )
             .ignoresSafeArea()
-            
+
             VStack(spacing: 0) {
                 // Header
                 HStack {
@@ -875,14 +897,14 @@ struct HistoryView: View {
                         Text("Bill History")
                             .font(.system(size: 28, weight: .bold, design: .rounded))
                             .foregroundColor(.white)
-                        
+
                         Text("Your recent calculations")
                             .font(.subheadline)
                             .foregroundColor(.white.opacity(0.6))
                     }
-                    
+
                     Spacer()
-                    
+
                     if !viewModel.recentBills.isEmpty {
                         Button {
                             viewModel.clearHistory()
@@ -896,25 +918,25 @@ struct HistoryView: View {
                 .padding(.horizontal, 24)
                 .padding(.top, 24)
                 .padding(.bottom, 16)
-                
+
                 if viewModel.recentBills.isEmpty {
                     // Empty State
                     Spacer()
-                    
+
                     VStack(spacing: 16) {
                         Image(systemName: "clock.arrow.circlepath")
                             .font(.system(size: 60))
                             .foregroundColor(.white.opacity(0.3))
-                        
+
                         Text("No History Yet")
                             .font(.system(size: 22, weight: .bold, design: .rounded))
                             .foregroundColor(.white.opacity(0.6))
-                        
+
                         Text("Save a calculation to see it here")
                             .font(.subheadline)
                             .foregroundColor(.white.opacity(0.4))
                     }
-                    
+
                     Spacer()
                 } else {
                     // Bill List
@@ -928,7 +950,7 @@ struct HistoryView: View {
                     }
                     .listStyle(.plain)
                     .scrollContentBackground(.hidden)
-                    
+
                     // Summary Footer Card
                     HistorySummaryCard(
                         lifetimeTips: viewModel.lifetimeTips,
@@ -937,7 +959,7 @@ struct HistoryView: View {
                     .padding(.horizontal, 24)
                     .padding(.bottom, 8)
                 }
-                
+
                 // Done Button
                 Button {
                     dismiss()
@@ -968,32 +990,51 @@ struct HistoryView: View {
 // MARK: - History Row View
 struct HistoryRowView: View {
     let bill: SavedBill
-    
+
     private static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
         return formatter
     }()
-    
+
     private static let currencyFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
         formatter.currencyCode = "USD"
         return formatter
     }()
-    
+
     private func formatCurrency(_ amount: Double) -> String {
         Self.currencyFormatter.string(from: NSNumber(value: amount)) ?? "$0.00"
     }
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Date
-            Text(Self.dateFormatter.string(from: bill.date))
-                .font(.system(size: 12, weight: .medium, design: .rounded))
-                .foregroundColor(.white.opacity(0.5))
-            
+            // Header: Emoji + Location or Date
+            HStack(spacing: 8) {
+                // Sentiment emoji (if available)
+                if let sentiment = bill.sentiment {
+                    Text(sentiment)
+                        .font(.system(size: 20))
+                }
+
+                // Location name or date
+                if let locationName = bill.locationName {
+                    Text(locationName)
+                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .foregroundColor(.white)
+                        .lineLimit(1)
+                }
+
+                Spacer()
+
+                // Date (smaller, on the right)
+                Text(Self.dateFormatter.string(from: bill.date))
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .foregroundColor(.white.opacity(0.5))
+            }
+
             // Main info row
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
@@ -1004,9 +1045,9 @@ struct HistoryRowView: View {
                         .font(.system(size: 16, weight: .semibold, design: .rounded))
                         .foregroundColor(.white)
                 }
-                
+
                 Spacer()
-                
+
                 VStack(alignment: .center, spacing: 4) {
                     Text("Tip")
                         .font(.system(size: 11, weight: .medium, design: .rounded))
@@ -1015,9 +1056,9 @@ struct HistoryRowView: View {
                         .font(.system(size: 16, weight: .semibold, design: .rounded))
                         .foregroundColor(.mint)
                 }
-                
+
                 Spacer()
-                
+
                 VStack(alignment: .trailing, spacing: 4) {
                     Text("Total")
                         .font(.system(size: 11, weight: .medium, design: .rounded))
@@ -1027,14 +1068,14 @@ struct HistoryRowView: View {
                         .foregroundColor(.white)
                 }
             }
-            
+
             // Split info (if applicable)
             if bill.numberOfPeople > 1 {
                 HStack {
                     Image(systemName: "person.2.fill")
                         .font(.system(size: 12))
                         .foregroundColor(.mint.opacity(0.7))
-                    
+
                     Text("Split \(bill.numberOfPeople) ways: \(formatCurrency(bill.amountPerPerson)) each")
                         .font(.system(size: 13, weight: .medium, design: .rounded))
                         .foregroundColor(.mint)
@@ -1050,18 +1091,18 @@ struct HistoryRowView: View {
 struct HistorySummaryCard: View {
     let lifetimeTips: Double
     let lifetimeSpend: Double
-    
+
     private static let currencyFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
         formatter.currencyCode = "USD"
         return formatter
     }()
-    
+
     private func formatCurrency(_ amount: Double) -> String {
         Self.currencyFormatter.string(from: NSNumber(value: amount)) ?? "$0.00"
     }
-    
+
     var body: some View {
         VStack(spacing: 16) {
             // Primary Metric: Total Tips (highlighted)
@@ -1075,12 +1116,12 @@ struct HistorySummaryCard: View {
                             endPoint: .bottomTrailing
                         )
                     )
-                
+
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Total Tips Given")
                         .font(.system(size: 12, weight: .medium, design: .rounded))
                         .foregroundColor(.white.opacity(0.6))
-                    
+
                     Text(formatCurrency(lifetimeTips))
                         .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundStyle(
@@ -1091,31 +1132,31 @@ struct HistorySummaryCard: View {
                             )
                         )
                 }
-                
+
                 Spacer()
             }
-            
+
             // Divider
             Rectangle()
                 .fill(Color.white.opacity(0.1))
                 .frame(height: 1)
-            
+
             // Secondary Metric: Total Spent
             HStack(spacing: 12) {
                 Image(systemName: "creditcard.fill")
                     .font(.system(size: 20))
                     .foregroundColor(.white.opacity(0.5))
-                
+
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Total Spent")
                         .font(.system(size: 11, weight: .medium, design: .rounded))
                         .foregroundColor(.white.opacity(0.5))
-                    
+
                     Text(formatCurrency(lifetimeSpend))
                         .font(.system(size: 18, weight: .semibold, design: .rounded))
                         .foregroundColor(.white.opacity(0.8))
                 }
-                
+
                 Spacer()
             }
         }
@@ -1134,11 +1175,11 @@ struct HistorySummaryCard: View {
 // MARK: - Glass Card Component
 struct GlassCard<Content: View>: View {
     let content: Content
-    
+
     init(@ViewBuilder content: () -> Content) {
         self.content = content()
     }
-    
+
     var body: some View {
         content
             .padding(20)
@@ -1160,14 +1201,14 @@ struct SentimentButton: View {
     let percentage: Int
     let isSelected: Bool
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             VStack(spacing: 4) {
                 Text(emoji)
                     .font(.system(size: 28))
                     .scaleEffect(isSelected ? 1.2 : 1.0)
-                
+
                 Text("\(percentage)%")
                     .font(.system(size: 12, weight: .bold, design: .rounded))
                     .foregroundColor(isSelected ? .black : .white.opacity(0.7))
@@ -1204,7 +1245,7 @@ struct TipButton: View {
     let percentage: Int
     let isSelected: Bool
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             Text("\(percentage)%")
@@ -1239,7 +1280,7 @@ struct TipButton: View {
 struct CustomTipButton: View {
     let isSelected: Bool
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             Image(systemName: "slider.horizontal.3")
@@ -1289,27 +1330,27 @@ struct ResultRow: View {
     let label: String
     let amount: Double
     let style: ResultRowStyle
-    
+
     var body: some View {
         HStack {
             HStack(spacing: 10) {
                 Image(systemName: icon)
                     .font(.system(size: style == .total ? 18 : 14))
                     .foregroundColor(iconColor)
-                
+
                 Text(label)
                     .font(labelFont)
                     .foregroundColor(textColor)
             }
-            
+
             Spacer()
-            
+
             Text(formatCurrency(amount))
                 .font(amountFont)
                 .foregroundColor(amountColor)
         }
     }
-    
+
     private var iconColor: Color {
         switch style {
         case .regular: return .white.opacity(0.5)
@@ -1317,7 +1358,7 @@ struct ResultRow: View {
         case .highlight: return .mint
         }
     }
-    
+
     private var textColor: Color {
         switch style {
         case .regular: return .white.opacity(0.7)
@@ -1325,7 +1366,7 @@ struct ResultRow: View {
         case .highlight: return .mint
         }
     }
-    
+
     private var labelFont: Font {
         switch style {
         case .regular: return .subheadline
@@ -1333,7 +1374,7 @@ struct ResultRow: View {
         case .highlight: return .subheadline.weight(.semibold)
         }
     }
-    
+
     private var amountFont: Font {
         switch style {
         case .regular: return .system(size: 18, weight: .semibold, design: .rounded)
@@ -1341,7 +1382,7 @@ struct ResultRow: View {
         case .highlight: return .system(size: 24, weight: .bold, design: .rounded)
         }
     }
-    
+
     private var amountColor: Color {
         switch style {
         case .regular: return .white.opacity(0.9)
@@ -1349,7 +1390,7 @@ struct ResultRow: View {
         case .highlight: return .mint
         }
     }
-    
+
     private func formatCurrency(_ amount: Double) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency

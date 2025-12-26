@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 import Combine
+import CoreLocation
 
 class TipCalculatorViewModel: ObservableObject {
     @Published var billAmountString: String = ""
@@ -16,26 +17,29 @@ class TipCalculatorViewModel: ObservableObject {
     @Published var numberOfPeopleString: String = "1"
     @Published var isCustomTipSelected: Bool = false
     @Published var customTipString: String = ""
-    @Published var selectedSentiment: String? = "🤩" // Default to "Good" sentiment
+    @Published var selectedSentiment: String? = "good" // Default to "Good" sentiment
     @Published var recentBills: [SavedBill] = []
     @Published var didAutoSave: Bool = false
-    
+
+    /// Location manager for fetching venue names (lazy to avoid MainActor isolation issues)
+    @MainActor lazy var locationManager = LocationManager()
+
     private let userDefaultsKey = "recentBills"
     private let maxHistoryCount = 10
     private let autoSaveDelay: TimeInterval = 7.0
     private var cancellables = Set<AnyCancellable>()
-    
+
     init() {
         // Load bills synchronously on init (safe for small data)
         if let data = UserDefaults.standard.data(forKey: userDefaultsKey),
            let bills = try? JSONDecoder().decode([SavedBill].self, from: data) {
             self.recentBills = bills
         }
-        
+
         // Set up auto-save pipeline: saves after 10 seconds of idle time
         setupAutoSave()
     }
-    
+
     /// Sets up Combine pipeline to auto-save after idle period
     private func setupAutoSave() {
         Publishers.CombineLatest4(
@@ -51,54 +55,54 @@ class TipCalculatorViewModel: ObservableObject {
         }
         .store(in: &cancellables)
     }
-    
+
     var billValue: Double {
         Double(billAmountString) ?? 0.0
     }
-    
+
     var effectiveTipPercentage: Double {
         if isCustomTipSelected {
             return Double(customTipString) ?? 0.0
         }
         return selectedTipPercentage
     }
-    
+
     var tipAmountBeforeRounding: Double {
         billValue * (effectiveTipPercentage / 100.0)
     }
-    
+
     var tipAmount: Double {
         if roundUp {
             return ceil(tipAmountBeforeRounding)
         }
         return tipAmountBeforeRounding
     }
-    
+
     var totalAmount: Double {
         billValue + tipAmount
     }
-    
+
     var numberOfPeopleValue: Int {
         max(1, Int(numberOfPeopleString) ?? 1)
     }
-    
+
     var amountPerPerson: Double {
         guard numberOfPeopleValue > 0 else { return 0 }
         return totalAmount / Double(numberOfPeopleValue)
     }
-    
+
     // MARK: - Lifetime Statistics
-    
+
     /// Total tips paid across all saved bills
     var lifetimeTips: Double {
         recentBills.reduce(0) { $0 + $1.tipAmount }
     }
-    
+
     /// Total amount spent across all saved bills (bill + tip)
     var lifetimeSpend: Double {
         recentBills.reduce(0) { $0 + $1.totalAmount }
     }
-    
+
     /// Checks if current bill values match the most recently saved bill
     private var isDuplicateOfLastSave: Bool {
         guard let lastBill = recentBills.first else { return false }
@@ -106,73 +110,116 @@ class TipCalculatorViewModel: ObservableObject {
                lastBill.tipPercentage == effectiveTipPercentage &&
                lastBill.numberOfPeople == numberOfPeopleValue
     }
-    
+
     func selectTipPercentage(_ percentage: Double) {
         selectedTipPercentage = percentage
         isCustomTipSelected = false
     }
-    
+
     func selectTipWithSentiment(_ percentage: Double, sentiment: String) {
         selectedTipPercentage = percentage
         selectedSentiment = sentiment
         isCustomTipSelected = false
     }
-    
+
     func selectCustomTip() {
         isCustomTipSelected = true
         selectedSentiment = nil
     }
-    
+
+    // MARK: - Reset
+
+    /// Resets the calculator to its default state
+    /// Clears bill amount, resets split to 1, and defaults tip to "Ok" sentiment
+    func resetAll() {
+        billAmountString = ""
+        numberOfPeopleString = "1"
+        roundUp = false
+        isCustomTipSelected = false
+        customTipString = ""
+        selectedSentiment = "ok"
+        // Note: selectedTipPercentage will be set by ContentView when sentiment changes
+    }
+
     // MARK: - Bill History Persistence
-    
+
     /// Auto-saves the bill if valid and not a duplicate of the last save
     private func autoSaveBillIfNeeded() {
         guard billValue > 0, !isDuplicateOfLastSave else { return }
-        saveBill()
-        
-        // Signal that an auto-save occurred
-        didAutoSave = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-            self?.didAutoSave = false
+
+        // Get the current sentiment emoji from UserDefaults
+        let sentimentEmoji = getCurrentSentimentEmoji()
+
+        // Auto-save with async location fetch
+        Task { @MainActor in
+            let locationName = await locationManager.fetchCurrentLocationName()
+            saveBill(locationName: locationName, sentimentEmoji: sentimentEmoji)
+
+            // Signal that an auto-save occurred
+            didAutoSave = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+                self?.didAutoSave = false
+            }
         }
     }
-    
+
+    /// Gets the current sentiment emoji based on selectedSentiment
+    private func getCurrentSentimentEmoji() -> String? {
+        guard let sentiment = selectedSentiment else { return nil }
+
+        switch sentiment {
+        case "bad":
+            return UserDefaults.standard.string(forKey: "emoji_bad") ?? "😢"
+        case "ok":
+            return UserDefaults.standard.string(forKey: "emoji_ok") ?? "😐"
+        case "good":
+            return UserDefaults.standard.string(forKey: "emoji_good") ?? "🤩"
+        default:
+            return nil
+        }
+    }
+
     /// Saves the current bill calculation to history
-    func saveBill() {
+    /// - Parameters:
+    ///   - locationName: Optional venue/restaurant name from location services
+    ///   - sentimentEmoji: Optional emoji representing the service sentiment
+    func saveBill(locationName: String? = nil, sentimentEmoji: String? = nil) {
         guard billValue > 0 else { return }
-        
+
         let savedBill = SavedBill(
             billAmount: billValue,
             tipPercentage: effectiveTipPercentage,
             tipAmount: tipAmount,
             totalAmount: totalAmount,
             numberOfPeople: numberOfPeopleValue,
-            amountPerPerson: amountPerPerson
+            amountPerPerson: amountPerPerson,
+            locationName: locationName,
+            sentiment: sentimentEmoji
         )
-        
+
         // Prepend new bill to array
         recentBills.insert(savedBill, at: 0)
-        
+
         // Limit to max history count
         if recentBills.count > maxHistoryCount {
             recentBills = Array(recentBills.prefix(maxHistoryCount))
         }
-        
+
         persistBills()
     }
-    
+
     /// Deletes a bill at the specified index
     func deleteBill(at offsets: IndexSet) {
         recentBills.remove(atOffsets: offsets)
         persistBills()
     }
-    
+
     /// Clears all saved bills from history
     func clearHistory() {
         recentBills.removeAll()
         persistBills()
     }
-    
+
     /// Persists bills to UserDefaults
     private func persistBills() {
         do {
@@ -185,3 +232,123 @@ class TipCalculatorViewModel: ObservableObject {
     }
 }
 
+// MARK: - Location Manager
+
+/// Manages location services for reverse geocoding restaurant/venue names
+@MainActor @Observable
+class LocationManager: NSObject, CLLocationManagerDelegate {
+
+    // MARK: - Properties
+
+    private let locationManager = CLLocationManager()
+    private let geocoder = CLGeocoder()
+
+    /// Current authorization status for location services
+    var authorizationStatus: CLAuthorizationStatus
+
+    /// The most recently fetched place name from reverse geocoding
+    var currentPlaceName: String?
+
+    /// Indicates if a location fetch is in progress
+    var isFetching: Bool = false
+
+    /// Continuation for async location requests
+    private var locationContinuation: CheckedContinuation<CLLocation?, Never>?
+
+    // MARK: - Initialization
+
+    override init() {
+        self.authorizationStatus = CLLocationManager().authorizationStatus
+        super.init()
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+    }
+
+    // MARK: - Public Methods
+
+    /// Requests "When In Use" location permission from the user
+    func requestPermission() {
+        locationManager.requestWhenInUseAuthorization()
+    }
+
+    /// Fetches the current location and reverse geocodes it to a place name
+    /// - Returns: The name of the current location (e.g., "Olive Garden") or nil if unavailable
+    func fetchCurrentLocationName() async -> String? {
+        // Check authorization first
+        guard authorizationStatus == .authorizedWhenInUse || authorizationStatus == .authorizedAlways else {
+            requestPermission()
+            return nil
+        }
+
+        isFetching = true
+        defer { isFetching = false }
+
+        // Get current location
+        guard let location = await getCurrentLocation() else {
+            return nil
+        }
+
+        // Reverse geocode the location
+        return await reverseGeocode(location: location)
+    }
+
+    // MARK: - Private Methods
+
+    /// Requests the current location using async/await
+    private func getCurrentLocation() async -> CLLocation? {
+        return await withCheckedContinuation { continuation in
+            self.locationContinuation = continuation
+            locationManager.requestLocation()
+        }
+    }
+
+    /// Reverse geocodes a location to extract the place name
+    private func reverseGeocode(location: CLLocation) async -> String? {
+        do {
+            let placemarks = try await geocoder.reverseGeocodeLocation(location)
+            guard let placemark = placemarks.first else { return nil }
+
+            // Try to get the most descriptive name available
+            // Priority: name (business name) > thoroughfare (street) > locality (city)
+            if let name = placemark.name, !name.isEmpty {
+                currentPlaceName = name
+                return name
+            } else if let thoroughfare = placemark.thoroughfare, !thoroughfare.isEmpty {
+                let streetName = thoroughfare
+                currentPlaceName = streetName
+                return streetName
+            } else if let locality = placemark.locality, !locality.isEmpty {
+                currentPlaceName = locality
+                return locality
+            }
+
+            return nil
+        } catch {
+            print("Reverse geocoding failed: \(error.localizedDescription)")
+            return nil
+        }
+    }
+
+    // MARK: - CLLocationManagerDelegate
+
+    nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        Task { @MainActor in
+            locationContinuation?.resume(returning: locations.first)
+            locationContinuation = nil
+        }
+    }
+
+    nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        Task { @MainActor in
+            print("Location manager failed with error: \(error.localizedDescription)")
+            locationContinuation?.resume(returning: nil)
+            locationContinuation = nil
+        }
+    }
+
+    nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        Task { @MainActor in
+            authorizationStatus = manager.authorizationStatus
+        }
+    }
+}
