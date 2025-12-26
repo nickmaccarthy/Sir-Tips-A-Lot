@@ -283,5 +283,81 @@ final class TipCalculatorViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.tipAmount, 0.0, accuracy: 0.001)
         XCTAssertEqual(viewModel.totalAmount, 100.0, accuracy: 0.001)
     }
+    
+    // MARK: - Lifetime Statistics Tests
+    
+    func testLifetimeTips_withNoBills_returnsZero() {
+        viewModel.clearHistory()
+        XCTAssertEqual(viewModel.lifetimeTips, 0.0, accuracy: 0.001)
+    }
+    
+    func testLifetimeTips_withBills_returnsSumOfTips() {
+        viewModel.clearHistory()
+        
+        // Save first bill: $50 with 20% tip = $10 tip
+        viewModel.billAmountString = "50"
+        viewModel.selectedTipPercentage = 20.0
+        viewModel.saveBill()
+        
+        // Save second bill: $100 with 15% tip = $15 tip
+        viewModel.billAmountString = "100"
+        viewModel.selectedTipPercentage = 15.0
+        viewModel.saveBill()
+        
+        // Total tips: $10 + $15 = $25
+        XCTAssertEqual(viewModel.lifetimeTips, 25.0, accuracy: 0.001)
+    }
+    
+    func testLifetimeSpend_withNoBills_returnsZero() {
+        viewModel.clearHistory()
+        XCTAssertEqual(viewModel.lifetimeSpend, 0.0, accuracy: 0.001)
+    }
+    
+    func testLifetimeSpend_withBills_returnsSumOfTotals() {
+        viewModel.clearHistory()
+        
+        // Save first bill: $50 + $10 tip = $60 total
+        viewModel.billAmountString = "50"
+        viewModel.selectedTipPercentage = 20.0
+        viewModel.saveBill()
+        
+        // Save second bill: $100 + $15 tip = $115 total
+        viewModel.billAmountString = "100"
+        viewModel.selectedTipPercentage = 15.0
+        viewModel.saveBill()
+        
+        // Total spend: $60 + $115 = $175
+        XCTAssertEqual(viewModel.lifetimeSpend, 175.0, accuracy: 0.001)
+    }
+    
+    func testLifetimeStats_updateAfterDeletion() {
+        viewModel.clearHistory()
+        
+        viewModel.billAmountString = "50"
+        viewModel.selectedTipPercentage = 20.0
+        viewModel.saveBill()
+        
+        viewModel.billAmountString = "100"
+        viewModel.selectedTipPercentage = 15.0
+        viewModel.saveBill()
+        
+        // Delete the most recent bill ($100 with $15 tip)
+        viewModel.deleteBill(at: IndexSet(integer: 0))
+        
+        // Only the $50 bill remains: $10 tip, $60 total
+        XCTAssertEqual(viewModel.lifetimeTips, 10.0, accuracy: 0.001)
+        XCTAssertEqual(viewModel.lifetimeSpend, 60.0, accuracy: 0.001)
+    }
+    
+    func testLifetimeStats_resetAfterClear() {
+        viewModel.billAmountString = "50"
+        viewModel.selectedTipPercentage = 20.0
+        viewModel.saveBill()
+        
+        viewModel.clearHistory()
+        
+        XCTAssertEqual(viewModel.lifetimeTips, 0.0, accuracy: 0.001)
+        XCTAssertEqual(viewModel.lifetimeSpend, 0.0, accuracy: 0.001)
+    }
 }
 

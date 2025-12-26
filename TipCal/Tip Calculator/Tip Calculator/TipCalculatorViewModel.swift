@@ -87,6 +87,18 @@ class TipCalculatorViewModel: ObservableObject {
         return totalAmount / Double(numberOfPeopleValue)
     }
     
+    // MARK: - Lifetime Statistics
+    
+    /// Total tips paid across all saved bills
+    var lifetimeTips: Double {
+        recentBills.reduce(0) { $0 + $1.tipAmount }
+    }
+    
+    /// Total amount spent across all saved bills (bill + tip)
+    var lifetimeSpend: Double {
+        recentBills.reduce(0) { $0 + $1.totalAmount }
+    }
+    
     /// Checks if current bill values match the most recently saved bill
     private var isDuplicateOfLastSave: Bool {
         guard let lastBill = recentBills.first else { return false }
