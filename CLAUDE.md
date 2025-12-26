@@ -125,9 +125,16 @@ TipCal/Tip Calculator/Tip CalculatorTests/
 
 ### Pre-commit Hook Setup
 
-To enable automatic test runs before commits:
+This project uses [pre-commit](https://pre-commit.com/) for automatic test runs before commits:
 ```bash
-git config core.hooksPath .githooks
+# Install pre-commit (if not already installed)
+brew install pre-commit
+
+# Enable hooks for this repo
+pre-commit install
+
+# Run manually on all files
+pre-commit run --all-files
 ```
 
 ## Easter Egg
