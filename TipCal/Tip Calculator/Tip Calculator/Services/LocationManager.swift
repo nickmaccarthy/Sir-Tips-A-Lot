@@ -55,9 +55,9 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
             return nil
         }
 
-        // Check authorization
+        // Check authorization - don't request permission here to avoid unexpected dialogs
+        // Permission should be requested via LocationOnboardingView on first run
         guard authorizationStatus == .authorizedWhenInUse || authorizationStatus == .authorizedAlways else {
-            requestPermission()
             return nil
         }
 

@@ -18,16 +18,16 @@ enum TipProduct: String, CaseIterable, Identifiable {
     /// Display name for the tip tier
     var displayName: String {
         switch self {
-        case .small: return "Meh Service"
-        case .medium: return "Ok Service"
-        case .large: return "Great Service!"
+        case .small: return "Good Service"
+        case .medium: return "Great Service"
+        case .large: return "AMAZING SERVICE!"
         }
     }
 
     /// Emoji for the tip tier
     var emoji: String {
         switch self {
-        case .small: return "😐"
+        case .small: return "😀"
         case .medium: return "😊"
         case .large: return "🤩"
         }

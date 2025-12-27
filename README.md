@@ -1,5 +1,9 @@
 # Sir Tips-A-Lot 🎩💰
 
+<p align="center">
+  <img src="TipCal/Tip Calculator/Tip Calculator/logo.png" width="200" alt="Sir Tips-A-Lot Logo" />
+</p>
+
 A beautiful, modern tip calculator app for iOS built with SwiftUI.
 
 This is my first IOS application. 

@@ -646,9 +646,7 @@ struct ContentView: View {
                 if viewModel.selectedSentiment == "good" {
                     viewModel.selectedTipPercentage = tipGood
                 }
-
-                // Request location permission early so it's ready when saving
-                viewModel.locationManager.requestPermission()
+                // Note: Location permission is requested via LocationOnboardingView on first run
             }
             .onChange(of: tipGood) { _, newValue in
                 // Update tip percentage if Great sentiment is currently selected
@@ -931,7 +929,7 @@ struct AppInfoView: View {
                 Spacer()
 
                 // Footer
-                Text("Made with ❤️ by Nick MacCarthy - nickmaccarthy@gmail.com")
+                Text("Made with ❤️ by Nick MacCarthy in Rhode Island, USA")
                     .font(.footnote)
                     .foregroundColor(.white.opacity(0.5))
 

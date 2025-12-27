@@ -11,7 +11,7 @@
       "localizations" : [
         {
           "description" : "A small tip to support the developer",
-          "displayName" : "Meh Service",
+          "displayName" : "Good Service",
           "locale" : "en_US"
         }
       ],
@@ -26,7 +26,7 @@
       "localizations" : [
         {
           "description" : "A medium tip to support the developer",
-          "displayName" : "Ok Service",
+          "displayName" : "Great Service",
           "locale" : "en_US"
         }
       ],
@@ -41,7 +41,7 @@
       "localizations" : [
         {
           "description" : "A large tip to support the developer",
-          "displayName" : "Great Service!",
+          "displayName" : "Amazing Service!",
           "locale" : "en_US"
         }
       ],

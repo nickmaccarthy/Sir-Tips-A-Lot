@@ -289,9 +289,15 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
     /// Fetches the current location and reverse geocodes it to a place name
     /// - Returns: The name of the current location (e.g., "Olive Garden") or nil if unavailable
     func fetchCurrentLocationName() async -> String? {
-        // Check authorization first
+        // Check user preference first - respect the toggle even if system permission is granted
+        let locationEnabled = UserDefaults.standard.object(forKey: "locationEnabled") as? Bool ?? true
+        guard locationEnabled else {
+            return nil
+        }
+
+        // Check authorization - don't request permission here to avoid unexpected dialogs
+        // Permission should be requested via LocationOnboardingView on first run
         guard authorizationStatus == .authorizedWhenInUse || authorizationStatus == .authorizedAlways else {
-            requestPermission()
             return nil
         }
 
