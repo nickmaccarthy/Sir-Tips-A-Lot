@@ -51,9 +51,10 @@ final class SavedBillTests: XCTestCase {
         XCTAssertNotNil(bill.date)
         // Date should be approximately now
         XCTAssertTrue(Date().timeIntervalSince(bill.date) < 1.0)
-        // Location and sentiment should default to nil
+        // Location, sentiment, and notes should default to nil
         XCTAssertNil(bill.locationName)
         XCTAssertNil(bill.sentiment)
+        XCTAssertNil(bill.notes)
     }
 
     func testSavedBill_initWithLocationAndSentiment_setsProperties() {
@@ -100,6 +101,38 @@ final class SavedBillTests: XCTestCase {
 
         XCTAssertNil(bill.locationName)
         XCTAssertEqual(bill.sentiment, "😐")
+    }
+
+    func testSavedBill_initWithNotes_setsNotesProperty() {
+        let bill = SavedBill(
+            billAmount: 50.0,
+            tipPercentage: 20.0,
+            tipAmount: 10.0,
+            totalAmount: 60.0,
+            numberOfPeople: 1,
+            amountPerPerson: 60.0,
+            notes: "Great birthday dinner!"
+        )
+
+        XCTAssertEqual(bill.notes, "Great birthday dinner!")
+    }
+
+    func testSavedBill_initWithAllOptionalFields_setsAllProperties() {
+        let bill = SavedBill(
+            billAmount: 100.0,
+            tipPercentage: 25.0,
+            tipAmount: 25.0,
+            totalAmount: 125.0,
+            numberOfPeople: 4,
+            amountPerPerson: 31.25,
+            locationName: "The Fancy Restaurant",
+            sentiment: "🤩",
+            notes: "Celebrated anniversary here!"
+        )
+
+        XCTAssertEqual(bill.locationName, "The Fancy Restaurant")
+        XCTAssertEqual(bill.sentiment, "🤩")
+        XCTAssertEqual(bill.notes, "Celebrated anniversary here!")
     }
 
     // MARK: - Codable Tests
@@ -151,8 +184,59 @@ final class SavedBillTests: XCTestCase {
         XCTAssertEqual(decodedBill.sentiment, "🤩")
     }
 
+    func testSavedBill_encodeDecodeWithNotes_roundTrip() throws {
+        let originalBill = SavedBill(
+            billAmount: 85.00,
+            tipPercentage: 22.0,
+            tipAmount: 18.70,
+            totalAmount: 103.70,
+            numberOfPeople: 2,
+            amountPerPerson: 51.85,
+            locationName: "Sushi Palace",
+            sentiment: "🤩",
+            notes: "Best omakase ever! Will return."
+        )
+
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(originalBill)
+
+        let decoder = JSONDecoder()
+        let decodedBill = try decoder.decode(SavedBill.self, from: data)
+
+        XCTAssertEqual(decodedBill.notes, "Best omakase ever! Will return.")
+        XCTAssertEqual(decodedBill.locationName, "Sushi Palace")
+        XCTAssertEqual(decodedBill.sentiment, "🤩")
+    }
+
+    func testSavedBill_decodeWithoutNotes_backwardCompatibility() throws {
+        // Simulate JSON from app version without notes field
+        let legacyJSON = """
+        {
+            "id": "550E8400-E29B-41D4-A716-446655440001",
+            "date": 0,
+            "billAmount": 75.0,
+            "tipPercentage": 20.0,
+            "tipAmount": 15.0,
+            "totalAmount": 90.0,
+            "numberOfPeople": 2,
+            "amountPerPerson": 45.0,
+            "locationName": "Pizza Place",
+            "sentiment": "😐"
+        }
+        """
+
+        let data = legacyJSON.data(using: .utf8)!
+        let decoder = JSONDecoder()
+        let decodedBill = try decoder.decode(SavedBill.self, from: data)
+
+        XCTAssertEqual(decodedBill.billAmount, 75.0, accuracy: 0.001)
+        XCTAssertEqual(decodedBill.locationName, "Pizza Place")
+        XCTAssertEqual(decodedBill.sentiment, "😐")
+        XCTAssertNil(decodedBill.notes)
+    }
+
     func testSavedBill_decodeWithoutLocationAndSentiment_backwardCompatibility() throws {
-        // Simulate JSON from older app version without locationName and sentiment fields
+        // Simulate JSON from older app version without locationName, sentiment, and notes fields
         let legacyJSON = """
         {
             "id": "550E8400-E29B-41D4-A716-446655440000",
@@ -173,6 +257,7 @@ final class SavedBillTests: XCTestCase {
         XCTAssertEqual(decodedBill.billAmount, 50.0, accuracy: 0.001)
         XCTAssertNil(decodedBill.locationName)
         XCTAssertNil(decodedBill.sentiment)
+        XCTAssertNil(decodedBill.notes)
     }
 
     func testSavedBill_encodeDecodeArray_roundTrip() throws {
