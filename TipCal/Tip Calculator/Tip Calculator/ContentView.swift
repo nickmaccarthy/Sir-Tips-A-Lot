@@ -726,7 +726,7 @@ struct TipJarView: View {
                         .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
 
-                    Text("Enjoying Sir Tips Alot? Leave a tip!  Its much appreciated! ☕")
+                    Text("Enjoying the app? Your support\nis much appreciated! ☕")
                         .font(.subheadline)
                         .foregroundColor(.white.opacity(0.7))
                         .multilineTextAlignment(.center)
