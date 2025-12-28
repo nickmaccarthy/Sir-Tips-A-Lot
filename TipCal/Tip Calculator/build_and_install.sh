@@ -32,6 +32,3 @@ echo "🚀 Launching app..."
 xcrun devicectl device process launch --device "$DEVICE_ID" nmac.Tip-Calculator
 
 echo "✅ Done!"
-
-
-

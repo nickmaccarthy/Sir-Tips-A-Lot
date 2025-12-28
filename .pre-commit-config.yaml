@@ -16,7 +16,7 @@ repos:
 
       - id: xcode-test
         name: Xcode Unit Tests
-        entry: bash -c 'xcodebuild test -project "TipCal/Tip Calculator/Tip Calculator.xcodeproj" -scheme "Tip Calculator" -destination "generic/platform=iOS Simulator" -quiet'
+        entry: bash -c 'xcodebuild test -project "TipCal/Tip Calculator/Tip Calculator.xcodeproj" -scheme "Tip Calculator" -destination "platform=iOS Simulator,name=iPhone 17 Pro" -quiet'
         language: system
         pass_filenames: false
         files: \.(swift|xcodeproj)$
@@ -33,4 +33,3 @@ repos:
       - id: check-yaml
       - id: check-added-large-files
         args: ['--maxkb=1000']
-
