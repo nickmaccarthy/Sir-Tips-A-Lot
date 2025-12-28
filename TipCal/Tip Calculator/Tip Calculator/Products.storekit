@@ -7,7 +7,7 @@
     {
       "displayPrice" : "0.99",
       "familyShareable" : false,
-      "internalID" : "tip_small_001",
+      "internalID" : "tip_service_good_001",
       "localizations" : [
         {
           "description" : "A small tip to support the developer",
@@ -15,14 +15,14 @@
           "locale" : "en_US"
         }
       ],
-      "productID" : "nmac.TipCalculator.tip.small",
-      "referenceName" : "Tip Small",
+      "productID" : "nmac.TipCalculator.tip.service.good",
+      "referenceName" : "Tip Good Service",
       "type" : "Consumable"
     },
     {
       "displayPrice" : "2.99",
       "familyShareable" : false,
-      "internalID" : "tip_medium_002",
+      "internalID" : "tip_service_great_002",
       "localizations" : [
         {
           "description" : "A medium tip to support the developer",
@@ -30,14 +30,14 @@
           "locale" : "en_US"
         }
       ],
-      "productID" : "nmac.TipCalculator.tip.medium",
-      "referenceName" : "Tip Medium",
+      "productID" : "nmac.TipCalculator.tip.service.great",
+      "referenceName" : "Tip Great Service",
       "type" : "Consumable"
     },
     {
       "displayPrice" : "4.99",
       "familyShareable" : false,
-      "internalID" : "tip_large_003",
+      "internalID" : "tip_service_amazing_003",
       "localizations" : [
         {
           "description" : "A large tip to support the developer",
@@ -45,8 +45,8 @@
           "locale" : "en_US"
         }
       ],
-      "productID" : "nmac.TipCalculator.tip.large",
-      "referenceName" : "Tip Large",
+      "productID" : "nmac.TipCalculator.tip.service.amazing",
+      "referenceName" : "Tip Amazing Service",
       "type" : "Consumable"
     }
   ],
@@ -112,3 +112,5 @@
     "minor" : 0
   }
 }
+
+

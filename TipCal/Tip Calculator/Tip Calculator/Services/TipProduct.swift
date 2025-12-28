@@ -9,27 +9,27 @@ import Foundation
 
 /// Defines the consumable In-App Purchase tip products
 enum TipProduct: String, CaseIterable, Identifiable {
-    case small = "nmac.TipCalculator.tip.small"
-    case medium = "nmac.TipCalculator.tip.medium"
-    case large = "nmac.TipCalculator.tip.large"
+    case good = "nmac.TipCalculator.tip.service.good"
+    case great = "nmac.TipCalculator.tip.service.great"
+    case amazing = "nmac.TipCalculator.tip.service.amazing"
 
     var id: String { rawValue }
 
     /// Display name for the tip tier
     var displayName: String {
         switch self {
-        case .small: return "Good Service"
-        case .medium: return "Great Service"
-        case .large: return "AMAZING SERVICE!"
+        case .good: return "Good Service"
+        case .great: return "Great Service"
+        case .amazing: return "AMAZING SERVICE!"
         }
     }
 
     /// Emoji for the tip tier
     var emoji: String {
         switch self {
-        case .small: return "😀"
-        case .medium: return "😊"
-        case .large: return "🤩"
+        case .good: return "😀"
+        case .great: return "😊"
+        case .amazing: return "🤩"
         }
     }
 
@@ -38,3 +38,5 @@ enum TipProduct: String, CaseIterable, Identifiable {
         allCases.map { $0.rawValue }
     }
 }
+
+

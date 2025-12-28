@@ -14,45 +14,45 @@ final class StoreManagerTests: XCTestCase {
 
     func testTipProductIDs() {
         // Verify all product IDs are correctly defined
-        XCTAssertEqual(TipProduct.small.rawValue, "nmac.TipCalculator.tip.small")
-        XCTAssertEqual(TipProduct.medium.rawValue, "nmac.TipCalculator.tip.medium")
-        XCTAssertEqual(TipProduct.large.rawValue, "nmac.TipCalculator.tip.large")
+        XCTAssertEqual(TipProduct.good.rawValue, "nmac.TipCalculator.tip.service.good")
+        XCTAssertEqual(TipProduct.great.rawValue, "nmac.TipCalculator.tip.service.great")
+        XCTAssertEqual(TipProduct.amazing.rawValue, "nmac.TipCalculator.tip.service.amazing")
     }
 
     func testTipProductDisplayNames() {
-        XCTAssertEqual(TipProduct.small.displayName, "Meh Service")
-        XCTAssertEqual(TipProduct.medium.displayName, "Ok Service")
-        XCTAssertEqual(TipProduct.large.displayName, "Great Service!")
+        XCTAssertEqual(TipProduct.good.displayName, "Good Service")
+        XCTAssertEqual(TipProduct.great.displayName, "Great Service")
+        XCTAssertEqual(TipProduct.amazing.displayName, "AMAZING SERVICE!")
     }
 
     func testTipProductEmojis() {
-        XCTAssertEqual(TipProduct.small.emoji, "😐")
-        XCTAssertEqual(TipProduct.medium.emoji, "😊")
-        XCTAssertEqual(TipProduct.large.emoji, "🤩")
+        XCTAssertEqual(TipProduct.good.emoji, "😀")
+        XCTAssertEqual(TipProduct.great.emoji, "😊")
+        XCTAssertEqual(TipProduct.amazing.emoji, "🤩")
     }
 
     func testTipProductAllProductIDs() {
         let allIDs = TipProduct.allProductIDs
         XCTAssertEqual(allIDs.count, 3)
-        XCTAssertTrue(allIDs.contains("nmac.TipCalculator.tip.small"))
-        XCTAssertTrue(allIDs.contains("nmac.TipCalculator.tip.medium"))
-        XCTAssertTrue(allIDs.contains("nmac.TipCalculator.tip.large"))
+        XCTAssertTrue(allIDs.contains("nmac.TipCalculator.tip.service.good"))
+        XCTAssertTrue(allIDs.contains("nmac.TipCalculator.tip.service.great"))
+        XCTAssertTrue(allIDs.contains("nmac.TipCalculator.tip.service.amazing"))
     }
 
     func testTipProductIdentifiable() {
         // Verify each product's id matches its rawValue
-        XCTAssertEqual(TipProduct.small.id, TipProduct.small.rawValue)
-        XCTAssertEqual(TipProduct.medium.id, TipProduct.medium.rawValue)
-        XCTAssertEqual(TipProduct.large.id, TipProduct.large.rawValue)
+        XCTAssertEqual(TipProduct.good.id, TipProduct.good.rawValue)
+        XCTAssertEqual(TipProduct.great.id, TipProduct.great.rawValue)
+        XCTAssertEqual(TipProduct.amazing.id, TipProduct.amazing.rawValue)
     }
 
     func testTipProductCaseIterable() {
         // Verify CaseIterable conformance returns all cases
         let allCases = TipProduct.allCases
         XCTAssertEqual(allCases.count, 3)
-        XCTAssertTrue(allCases.contains(.small))
-        XCTAssertTrue(allCases.contains(.medium))
-        XCTAssertTrue(allCases.contains(.large))
+        XCTAssertTrue(allCases.contains(.good))
+        XCTAssertTrue(allCases.contains(.great))
+        XCTAssertTrue(allCases.contains(.amazing))
     }
 
     // MARK: - PurchaseState Tests
@@ -134,3 +134,5 @@ final class StoreManagerTests: XCTestCase {
         XCTAssertEqual(storeManager.purchaseState, .idle)
     }
 }
+
+
