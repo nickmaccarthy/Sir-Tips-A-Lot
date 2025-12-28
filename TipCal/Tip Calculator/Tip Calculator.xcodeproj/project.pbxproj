@@ -22,6 +22,7 @@
 		41D161E02EF83D330004C800 /* TipProduct.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161E12EF83D330004C800 /* TipProduct.swift */; };
 		41D161E22EF83D330004C800 /* StoreManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161E32EF83D330004C800 /* StoreManager.swift */; };
 		41D161E62EF83D330004C800 /* StoreManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161E72EF83D330004C800 /* StoreManagerTests.swift */; };
+		41D161F02EF83D330004C800 /* LocationSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161F12EF83D330004C800 /* LocationSettingsTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -53,6 +54,7 @@
 		41D161E32EF83D330004C800 /* StoreManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreManager.swift; sourceTree = "<group>"; };
 		41D161E52EF83D330004C800 /* Products.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Products.storekit; sourceTree = "<group>"; };
 		41D161E72EF83D330004C800 /* StoreManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreManagerTests.swift; sourceTree = "<group>"; };
+		41D161F12EF83D330004C800 /* LocationSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSettingsTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -141,6 +143,7 @@
 				41D161C22EF83D330004C800 /* SavedBillTests.swift */,
 				41D161C42EF83D330004C800 /* NumberParsingTests.swift */,
 				41D161E72EF83D330004C800 /* StoreManagerTests.swift */,
+				41D161F12EF83D330004C800 /* LocationSettingsTests.swift */,
 			);
 			path = "Tip CalculatorTests";
 			sourceTree = "<group>";
@@ -270,6 +273,7 @@
 				41D161C32EF83D330004C800 /* SavedBillTests.swift in Sources */,
 				41D161C52EF83D330004C800 /* NumberParsingTests.swift in Sources */,
 				41D161E62EF83D330004C800 /* StoreManagerTests.swift in Sources */,
+				41D161F02EF83D330004C800 /* LocationSettingsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

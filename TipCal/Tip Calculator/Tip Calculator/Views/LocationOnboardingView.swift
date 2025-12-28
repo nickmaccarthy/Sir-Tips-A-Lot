@@ -118,6 +118,8 @@ struct LocationOnboardingView: View {
                     // Secondary: Maybe Later
                     Button {
                         triggerHaptic(style: .light)
+                        // User skipped location - disable the setting
+                        UserDefaults.standard.set(false, forKey: "locationEnabled")
                         markOnboardingComplete()
                     } label: {
                         Text("Maybe Later")
@@ -164,3 +166,5 @@ struct LocationOnboardingView: View {
         onComplete: {}
     )
 }
+
+

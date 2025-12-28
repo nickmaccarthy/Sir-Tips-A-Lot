@@ -94,7 +94,8 @@ struct SettingsView: View {
 
                     LocationSettingRow(
                         locationEnabled: $locationEnabled,
-                        authorizationStatus: locationManager.authorizationStatus
+                        authorizationStatus: locationManager.authorizationStatus,
+                        locationManager: locationManager
                     )
                 }
                 .padding(.horizontal, 20)
@@ -297,9 +298,14 @@ struct SentimentSettingRow: View {
 struct LocationSettingRow: View {
     @Binding var locationEnabled: Bool
     let authorizationStatus: CLAuthorizationStatus
+    let locationManager: LocationManager
 
     private var isSystemPermissionDenied: Bool {
         authorizationStatus == .denied || authorizationStatus == .restricted
+    }
+
+    private var isNotDetermined: Bool {
+        authorizationStatus == .notDetermined
     }
 
     var body: some View {
@@ -333,7 +339,22 @@ struct LocationSettingRow: View {
                 Spacer()
 
                 // Toggle
-                Toggle("", isOn: $locationEnabled)
+                Toggle("", isOn: Binding(
+                    get: {
+                        // Show OFF if system permission is denied, regardless of user preference
+                        if isSystemPermissionDenied {
+                            return false
+                        }
+                        return locationEnabled
+                    },
+                    set: { newValue in
+                        locationEnabled = newValue
+                        // If turning ON and permission not yet requested, request it
+                        if newValue && isNotDetermined {
+                            locationManager.requestPermission()
+                        }
+                    }
+                ))
                     .tint(.mint)
                     .labelsHidden()
                     .disabled(isSystemPermissionDenied)

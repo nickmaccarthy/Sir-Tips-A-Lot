@@ -15,6 +15,7 @@ struct ContentView: View {
     @State private var showHistory = false
     @State private var showSettings = false
     @State private var showSaveConfirmation = false
+    @State private var showTipInfoPopover = false
     @State private var historyButtonHighlight = false
     @State private var isShowingScanner = false
     @State private var isNoteExpanded = false
@@ -23,8 +24,8 @@ struct ContentView: View {
 
     // MARK: - Tip Preferences (read from @AppStorage)
     @AppStorage("tip_bad") private var tipBad: Double = 15.0
-    @AppStorage("tip_ok") private var tipOk: Double = 20.0
-    @AppStorage("tip_good") private var tipGood: Double = 25.0
+    @AppStorage("tip_ok") private var tipOk: Double = 18.0
+    @AppStorage("tip_good") private var tipGood: Double = 22.0
 
     // MARK: - Custom Emojis (read from @AppStorage)
     @AppStorage("emoji_bad") private var emojiBad: String = "😢"
@@ -56,9 +57,37 @@ struct ContentView: View {
     private var tipSelectionCard: some View {
         GlassCard {
             VStack(alignment: .leading, spacing: 16) {
-                Label("How was the service?", systemImage: "face.smiling")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundColor(.white.opacity(0.7))
+                HStack {
+                    Label("How was the service?", systemImage: "face.smiling")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundColor(.white.opacity(0.7))
+                    
+                    Spacer()
+                    
+                    Button {
+                        showTipInfoPopover = true
+                    } label: {
+                        Image(systemName: "info.circle")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.mint.opacity(0.7))
+                    }
+                    .popover(isPresented: $showTipInfoPopover, arrowEdge: .top) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Customize Your Tips")
+                                .font(.system(size: 14, weight: .bold, design: .rounded))
+                                .foregroundColor(.white)
+                            
+                            Text("You can personalize the tip percentages and emojis in Settings to match your preferences.")
+                                .font(.system(size: 13, weight: .medium, design: .rounded))
+                                .foregroundColor(.white.opacity(0.8))
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .padding(16)
+                        .frame(width: 240)
+                        .background(Color(red: 0.15, green: 0.15, blue: 0.25))
+                        .presentationCompactAdaptation(.popover)
+                    }
+                }
 
                 HStack(spacing: 10) {
                     // Bad Service
@@ -726,10 +755,12 @@ struct TipJarView: View {
                         .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
 
-                    Text("Enjoying the app? Your support\nis much appreciated! ☕")
+                    Text("Enjoying the app?\nYour support is appreciated! ☕")
                         .font(.subheadline)
                         .foregroundColor(.white.opacity(0.7))
                         .multilineTextAlignment(.center)
+                        .lineLimit(nil)
+                        .fixedSize(horizontal: false, vertical: true)
                         .padding(.horizontal)
                 }
                 .padding(.top, 40)
@@ -929,9 +960,12 @@ struct AppInfoView: View {
                 Spacer()
 
                 // Footer
-                Text("Made with ❤️ by Nick MacCarthy in Rhode Island, USA")
+                Text("Made with ❤️ by Nick MacCarthy\nin Rhode Island, USA\nnickmaccarthy@gmail.com")
                     .font(.footnote)
                     .foregroundColor(.white.opacity(0.5))
+                    .multilineTextAlignment(.center)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 // Close Button
                 Button {
