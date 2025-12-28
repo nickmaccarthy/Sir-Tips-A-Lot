@@ -1,0 +1,116 @@
+{
+  "identifier" : "D8F3E2A1-B5C4-4D6E-9F8A-1B2C3D4E5F6A",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "tip_service_good_001",
+      "localizations" : [
+        {
+          "description" : "A small tip to support the developer",
+          "displayName" : "Good Service",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "nmac.TipCalculator.tip.service.good",
+      "referenceName" : "Tip Good Service",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "2.99",
+      "familyShareable" : false,
+      "internalID" : "tip_service_great_002",
+      "localizations" : [
+        {
+          "description" : "A medium tip to support the developer",
+          "displayName" : "Great Service",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "nmac.TipCalculator.tip.service.great",
+      "referenceName" : "Tip Great Service",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : false,
+      "internalID" : "tip_service_amazing_003",
+      "localizations" : [
+        {
+          "description" : "A large tip to support the developer",
+          "displayName" : "Amazing Service!",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "nmac.TipCalculator.tip.service.amazing",
+      "referenceName" : "Tip Amazing Service",
+      "type" : "Consumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "TipCalculator",
+    "_developerTeamID" : "DEVELOPMENT_TEAM",
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Purchase"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Verification"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Store Sync"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Subscription Status"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Transaction"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Manage Subscriptions Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Refund Request Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Offer Code Redeem Sheet"
+      }
+    ]
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}
+
+

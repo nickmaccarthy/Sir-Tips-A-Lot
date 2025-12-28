@@ -20,6 +20,10 @@ class TipCalculatorViewModel: ObservableObject {
     @Published var selectedSentiment: String? = "good" // Default to "Good" sentiment
     @Published var recentBills: [SavedBill] = []
     @Published var didAutoSave: Bool = false
+    @Published var noteText: String = ""
+
+    /// Flag to prevent auto-save while user is editing notes
+    @Published var isEditingNote: Bool = false
 
     /// Location manager for fetching venue names (lazy to avoid MainActor isolation issues)
     @MainActor lazy var locationManager = LocationManager()
@@ -138,6 +142,8 @@ class TipCalculatorViewModel: ObservableObject {
         isCustomTipSelected = false
         customTipString = ""
         selectedSentiment = "ok"
+        noteText = ""
+        isEditingNote = false
         // Note: selectedTipPercentage will be set by ContentView when sentiment changes
     }
 
@@ -145,7 +151,8 @@ class TipCalculatorViewModel: ObservableObject {
 
     /// Auto-saves the bill if valid and not a duplicate of the last save
     private func autoSaveBillIfNeeded() {
-        guard billValue > 0, !isDuplicateOfLastSave else { return }
+        // Don't auto-save if user is currently editing notes
+        guard billValue > 0, !isDuplicateOfLastSave, !isEditingNote else { return }
 
         // Get the current sentiment emoji from UserDefaults
         let sentimentEmoji = getCurrentSentimentEmoji()
@@ -183,8 +190,12 @@ class TipCalculatorViewModel: ObservableObject {
     /// - Parameters:
     ///   - locationName: Optional venue/restaurant name from location services
     ///   - sentimentEmoji: Optional emoji representing the service sentiment
-    func saveBill(locationName: String? = nil, sentimentEmoji: String? = nil) {
+    ///   - notes: Optional user notes about the bill
+    func saveBill(locationName: String? = nil, sentimentEmoji: String? = nil, notes: String? = nil) {
         guard billValue > 0 else { return }
+
+        // Use provided notes, or fall back to current noteText if not empty
+        let billNotes: String? = notes ?? (noteText.isEmpty ? nil : noteText)
 
         let savedBill = SavedBill(
             billAmount: billValue,
@@ -194,7 +205,8 @@ class TipCalculatorViewModel: ObservableObject {
             numberOfPeople: numberOfPeopleValue,
             amountPerPerson: amountPerPerson,
             locationName: locationName,
-            sentiment: sentimentEmoji
+            sentiment: sentimentEmoji,
+            notes: billNotes
         )
 
         // Prepend new bill to array
@@ -206,6 +218,9 @@ class TipCalculatorViewModel: ObservableObject {
         }
 
         persistBills()
+
+        // Clear note text after saving
+        noteText = ""
     }
 
     /// Deletes a bill at the specified index
@@ -274,9 +289,15 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
     /// Fetches the current location and reverse geocodes it to a place name
     /// - Returns: The name of the current location (e.g., "Olive Garden") or nil if unavailable
     func fetchCurrentLocationName() async -> String? {
-        // Check authorization first
+        // Check user preference first - respect the toggle even if system permission is granted
+        let locationEnabled = UserDefaults.standard.object(forKey: "locationEnabled") as? Bool ?? true
+        guard locationEnabled else {
+            return nil
+        }
+
+        // Check authorization - don't request permission here to avoid unexpected dialogs
+        // Permission should be requested via LocationOnboardingView on first run
         guard authorizationStatus == .authorizedWhenInUse || authorizationStatus == .authorizedAlways else {
-            requestPermission()
             return nil
         }
 

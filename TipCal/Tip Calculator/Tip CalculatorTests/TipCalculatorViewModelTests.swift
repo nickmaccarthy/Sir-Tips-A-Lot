@@ -451,4 +451,63 @@ final class TipCalculatorViewModelTests: XCTestCase {
         XCTAssertNil(savedBill?.locationName)
         XCTAssertNil(savedBill?.sentiment)
     }
+
+    // MARK: - Save Bill with Notes Tests
+
+    func testSaveBill_withNotes_savesNotes() {
+        viewModel.billAmountString = "50"
+        viewModel.selectedTipPercentage = 20.0
+        viewModel.saveBill(locationName: nil, sentimentEmoji: nil, notes: "Great service!")
+
+        XCTAssertEqual(viewModel.recentBills.first?.notes, "Great service!")
+    }
+
+    func testSaveBill_withAllOptionalFields_savesAllFields() {
+        viewModel.billAmountString = "100"
+        viewModel.selectedTipPercentage = 25.0
+        viewModel.saveBill(
+            locationName: "Fancy Restaurant",
+            sentimentEmoji: "🤩",
+            notes: "Anniversary dinner, excellent experience!"
+        )
+
+        let savedBill = viewModel.recentBills.first
+        XCTAssertEqual(savedBill?.locationName, "Fancy Restaurant")
+        XCTAssertEqual(savedBill?.sentiment, "🤩")
+        XCTAssertEqual(savedBill?.notes, "Anniversary dinner, excellent experience!")
+    }
+
+    func testSaveBill_withEmptyNotes_savesEmptyString() {
+        viewModel.billAmountString = "50"
+        viewModel.selectedTipPercentage = 20.0
+        viewModel.saveBill(locationName: nil, sentimentEmoji: nil, notes: "")
+
+        // Empty string should still be saved as empty string, not nil
+        XCTAssertEqual(viewModel.recentBills.first?.notes, "")
+    }
+
+    func testSaveBill_withoutNotes_savesNilNotes() {
+        viewModel.billAmountString = "50"
+        viewModel.selectedTipPercentage = 20.0
+        viewModel.saveBill(locationName: "Pizza Place", sentimentEmoji: "😐")
+
+        XCTAssertNil(viewModel.recentBills.first?.notes)
+    }
+
+    // MARK: - Note Text State Tests
+
+    func testNoteText_initialValue_isEmpty() {
+        XCTAssertEqual(viewModel.noteText, "")
+    }
+
+    func testResetAll_clearsNoteText() {
+        viewModel.noteText = "Some notes here"
+        viewModel.resetAll()
+        XCTAssertEqual(viewModel.noteText, "")
+    }
+
+    func testNoteText_canBeSet() {
+        viewModel.noteText = "Test note"
+        XCTAssertEqual(viewModel.noteText, "Test note")
+    }
 }

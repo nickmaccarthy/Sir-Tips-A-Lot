@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import StoreKit
 
 struct ContentView: View {
     @StateObject private var viewModel = TipCalculatorViewModel()
@@ -14,14 +15,17 @@ struct ContentView: View {
     @State private var showHistory = false
     @State private var showSettings = false
     @State private var showSaveConfirmation = false
+    @State private var showTipInfoPopover = false
     @State private var historyButtonHighlight = false
     @State private var isShowingScanner = false
+    @State private var isNoteExpanded = false
     @FocusState private var isInputFocused: Bool
+    @FocusState private var isNoteFocused: Bool
 
     // MARK: - Tip Preferences (read from @AppStorage)
     @AppStorage("tip_bad") private var tipBad: Double = 15.0
-    @AppStorage("tip_ok") private var tipOk: Double = 20.0
-    @AppStorage("tip_good") private var tipGood: Double = 25.0
+    @AppStorage("tip_ok") private var tipOk: Double = 18.0
+    @AppStorage("tip_good") private var tipGood: Double = 22.0
 
     // MARK: - Custom Emojis (read from @AppStorage)
     @AppStorage("emoji_bad") private var emojiBad: String = "😢"
@@ -53,9 +57,37 @@ struct ContentView: View {
     private var tipSelectionCard: some View {
         GlassCard {
             VStack(alignment: .leading, spacing: 16) {
-                Label("How was the service?", systemImage: "face.smiling")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundColor(.white.opacity(0.7))
+                HStack {
+                    Label("How was the service?", systemImage: "face.smiling")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundColor(.white.opacity(0.7))
+                    
+                    Spacer()
+                    
+                    Button {
+                        showTipInfoPopover = true
+                    } label: {
+                        Image(systemName: "info.circle")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.mint.opacity(0.7))
+                    }
+                    .popover(isPresented: $showTipInfoPopover, arrowEdge: .top) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Customize Your Tips")
+                                .font(.system(size: 14, weight: .bold, design: .rounded))
+                                .foregroundColor(.white)
+                            
+                            Text("You can personalize the tip percentages and emojis in Settings to match your preferences.")
+                                .font(.system(size: 13, weight: .medium, design: .rounded))
+                                .foregroundColor(.white.opacity(0.8))
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .padding(16)
+                        .frame(width: 240)
+                        .background(Color(red: 0.15, green: 0.15, blue: 0.25))
+                        .presentationCompactAdaptation(.popover)
+                    }
+                }
 
                 HStack(spacing: 10) {
                     // Bad Service
@@ -419,6 +451,70 @@ struct ContentView: View {
                         }
                         .buttonStyle(ScaleButtonStyle())
                         .padding(.top, 16)
+
+                        // Notes Section
+                        Divider()
+                            .background(Color.white.opacity(0.1))
+                            .padding(.vertical, 12)
+
+                        if isNoteExpanded {
+                            // Expanded note text field
+                            HStack(spacing: 12) {
+                                Image(systemName: "note.text")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.mint)
+
+                                TextField("Add a note about this bill...", text: $viewModel.noteText, axis: .vertical)
+                                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                                    .foregroundColor(.white)
+                                    .focused($isNoteFocused)
+                                    .lineLimit(1...3)
+
+                                Button {
+                                    triggerHaptic(style: .light)
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                        isNoteExpanded = false
+                                        isNoteFocused = false
+                                        viewModel.isEditingNote = false
+                                    }
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.system(size: 18))
+                                        .foregroundColor(.white.opacity(0.4))
+                                }
+                            }
+                            .padding(12)
+                            .background(Color.white.opacity(0.1))
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .stroke(Color.mint.opacity(0.3), lineWidth: 1)
+                            )
+                            .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                        } else {
+                            // Add Note button
+                            Button {
+                                triggerHaptic(style: .light)
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                    isNoteExpanded = true
+                                    viewModel.isEditingNote = true
+                                }
+                                // Focus the text field after animation
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                    isNoteFocused = true
+                                }
+                            } label: {
+                                HStack(spacing: 6) {
+                                    Image(systemName: viewModel.noteText.isEmpty ? "plus.circle" : "note.text")
+                                        .font(.system(size: 14))
+                                    Text(viewModel.noteText.isEmpty ? "Add Note" : "Edit Note")
+                                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                                }
+                                .foregroundColor(.mint.opacity(0.8))
+                            }
+                            .buttonStyle(ScaleButtonStyle())
+                            .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                        }
                     }
                     .padding(20)
                     .background(
@@ -452,6 +548,13 @@ struct ContentView: View {
 
                         // Get current sentiment emoji
                         let sentimentEmoji = getCurrentSentimentEmoji()
+
+                        // Collapse notes field and stop editing mode
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            isNoteExpanded = false
+                            isNoteFocused = false
+                            viewModel.isEditingNote = false
+                        }
 
                         // Save with async location fetch
                         Task {
@@ -502,15 +605,14 @@ struct ContentView: View {
                     .opacity(viewModel.billValue > 0 ? 1 : 0.4)
                     .disabled(viewModel.billValue <= 0 || showSaveConfirmation)
 
-                    #if DEBUG
-                    // Tip Jar Button (hidden in Release builds for App Store review)
+                    // Tip Jar Button
                     Button {
                         showTipJar = true
                     } label: {
                         HStack(spacing: 8) {
                             Image(systemName: "heart.fill")
                                 .font(.system(size: 14))
-                            Text("Tip Jar")
+                            Text("Tip the Developer")
                                 .font(.system(size: 14, weight: .semibold, design: .rounded))
                         }
                         .foregroundColor(.white.opacity(0.6))
@@ -525,7 +627,6 @@ struct ContentView: View {
                     }
                     .buttonStyle(ScaleButtonStyle())
                     .padding(.top, 8)
-                    #endif
 
                     Spacer(minLength: 40)
                 }
@@ -555,11 +656,9 @@ struct ContentView: View {
                     }
                 }
             }
-            #if DEBUG
             .sheet(isPresented: $showTipJar) {
                 TipJarView()
             }
-            #endif
             .sheet(isPresented: $showHistory) {
                 HistoryView(viewModel: viewModel)
             }
@@ -576,9 +675,7 @@ struct ContentView: View {
                 if viewModel.selectedSentiment == "good" {
                     viewModel.selectedTipPercentage = tipGood
                 }
-
-                // Request location permission early so it's ready when saving
-                viewModel.locationManager.requestPermission()
+                // Note: Location permission is requested via LocationOnboardingView on first run
             }
             .onChange(of: tipGood) { _, newValue in
                 // Update tip percentage if Great sentiment is currently selected
@@ -622,14 +719,11 @@ struct ContentView: View {
     }
 }
 
-// MARK: - Tip Jar View
+// MARK: - Tip Jar View (StoreKit IAP)
 struct TipJarView: View {
     @Environment(\.dismiss) private var dismiss
-
-    // Your payment usernames
-    let venmoUsername = "NickMacCarthy"
-    let cashAppUsername = "$NickMacCarthy"  // Include the $ for Cash App
-    let paypalUsername = "nickmaccarthy"
+    @StateObject private var storeManager = StoreManager()
+    @State private var showThankYou = false
 
     var body: some View {
         ZStack {
@@ -661,46 +755,71 @@ struct TipJarView: View {
                         .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
 
-                    Text("Enjoying this app? Consider buying me a coffee! ☕")
+                    Text("Enjoying the app?\nYour support is appreciated! ☕")
                         .font(.subheadline)
                         .foregroundColor(.white.opacity(0.7))
                         .multilineTextAlignment(.center)
+                        .lineLimit(nil)
+                        .fixedSize(horizontal: false, vertical: true)
                         .padding(.horizontal)
                 }
                 .padding(.top, 40)
 
                 Spacer()
 
-                // Payment Options
-                VStack(spacing: 16) {
-                    PaymentButton(
-                        title: "Venmo",
-                        subtitle: "@\(venmoUsername)",
-                        icon: "v.circle.fill",
-                        color: Color(red: 0.2, green: 0.6, blue: 0.9)
-                    ) {
-                        openURL("https://venmo.com/u/\(venmoUsername)")
+                // Tip Options
+                if storeManager.isLoading {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .mint))
+                        .scaleEffect(1.5)
+                } else if let error = storeManager.errorMessage {
+                    VStack(spacing: 12) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.system(size: 40))
+                            .foregroundColor(.orange)
+                        Text(error)
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.7))
+                            .multilineTextAlignment(.center)
+                        Button("Retry") {
+                            Task { await storeManager.loadProducts() }
+                        }
+                        .foregroundColor(.mint)
                     }
+                    .padding()
+                } else if showThankYou {
+                    // Thank you state
+                    VStack(spacing: 16) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 60))
+                            .foregroundColor(.green)
 
-                    PaymentButton(
-                        title: "Cash App",
-                        subtitle: cashAppUsername,
-                        icon: "dollarsign.circle.fill",
-                        color: Color(red: 0.0, green: 0.8, blue: 0.4)
-                    ) {
-                        openURL("https://cash.app/\(cashAppUsername)")
-                    }
+                        Text("Thank You!")
+                            .font(.system(size: 24, weight: .bold, design: .rounded))
+                            .foregroundColor(.white)
 
-                    PaymentButton(
-                        title: "PayPal",
-                        subtitle: "@\(paypalUsername)",
-                        icon: "p.circle.fill",
-                        color: Color(red: 0.0, green: 0.4, blue: 0.8)
-                    ) {
-                        openURL("https://www.paypal.com/paypalme/\(paypalUsername)")
+                        Text("Your support means the world to me! 💚")
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.7))
                     }
+                    .transition(.scale.combined(with: .opacity))
+                } else {
+                    // Product buttons
+                    VStack(spacing: 16) {
+                        ForEach(storeManager.products, id: \.id) { product in
+                            TipProductButton(
+                                product: product,
+                                tipProduct: storeManager.tipProduct(for: product),
+                                isLoading: storeManager.purchaseState == .purchasing
+                            ) {
+                                Task {
+                                    await storeManager.purchase(product)
+                                }
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 30)
                 }
-                .padding(.horizontal, 30)
 
                 Spacer()
 
@@ -708,7 +827,7 @@ struct TipJarView: View {
                 Button {
                     dismiss()
                 } label: {
-                    Text("Maybe Later")
+                    Text(showThankYou ? "Done" : "Maybe Later")
                         .font(.system(size: 16, weight: .medium, design: .rounded))
                         .foregroundColor(.white.opacity(0.6))
                 }
@@ -717,54 +836,73 @@ struct TipJarView: View {
         }
         .presentationDetents([.medium])
         .presentationDragIndicator(.visible)
-    }
-
-    private func openURL(_ urlString: String) {
-        if let url = URL(string: urlString) {
-            #if os(iOS)
-            UIApplication.shared.open(url)
-            #endif
+        .onChange(of: storeManager.purchaseState) { _, newState in
+            if newState == .purchased {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                    showThankYou = true
+                }
+                // Auto-dismiss after delay
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                    dismiss()
+                }
+            }
         }
     }
 }
 
-// MARK: - Payment Button
-struct PaymentButton: View {
-    let title: String
-    let subtitle: String
-    let icon: String
-    let color: Color
+// MARK: - Tip Product Button
+struct TipProductButton: View {
+    let product: Product
+    let tipProduct: TipProduct?
+    let isLoading: Bool
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             HStack(spacing: 16) {
-                Image(systemName: icon)
-                    .font(.system(size: 28))
-                    .foregroundColor(.white)
+                // Emoji
+                Text(tipProduct?.emoji ?? "💰")
+                    .font(.system(size: 32))
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
+                    Text(tipProduct?.displayName ?? product.displayName)
                         .font(.system(size: 18, weight: .semibold, design: .rounded))
                         .foregroundColor(.white)
 
-                    Text(subtitle)
-                        .font(.system(size: 13, weight: .medium, design: .rounded))
-                        .foregroundColor(.white.opacity(0.7))
+                    Text(product.displayPrice)
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .foregroundColor(.mint)
                 }
 
                 Spacer()
 
-                Image(systemName: "arrow.up.right")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.6))
+                if isLoading {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                } else {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.6))
+                }
             }
             .padding(.horizontal, 20)
-            .padding(.vertical, 14)
-            .background(color)
+            .padding(.vertical, 16)
+            .background(
+                LinearGradient(
+                    colors: [Color.mint.opacity(0.3), Color.teal.opacity(0.2)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .background(.ultraThinMaterial)
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(Color.mint.opacity(0.3), lineWidth: 1)
+            )
         }
         .buttonStyle(ScaleButtonStyle())
+        .disabled(isLoading)
     }
 }
 
@@ -822,9 +960,12 @@ struct AppInfoView: View {
                 Spacer()
 
                 // Footer
-                Text("Made with ❤️ by Nick MacCarthy - nickmaccarthy@gmail.com")
+                Text("Made with ❤️ by Nick MacCarthy\nin Rhode Island, USA\nnickmaccarthy@gmail.com")
                     .font(.footnote)
                     .foregroundColor(.white.opacity(0.5))
+                    .multilineTextAlignment(.center)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 // Close Button
                 Button {
@@ -876,6 +1017,7 @@ struct InfoRow: View {
 struct HistoryView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var viewModel: TipCalculatorViewModel
+    @State private var expandedBillId: UUID? = nil
 
     var body: some View {
         ZStack {
@@ -942,9 +1084,21 @@ struct HistoryView: View {
                     // Bill List
                     List {
                         ForEach(viewModel.recentBills) { bill in
-                            HistoryRowView(bill: bill)
-                                .listRowBackground(Color.white.opacity(0.05))
-                                .listRowSeparatorTint(Color.white.opacity(0.1))
+                            HistoryRowView(
+                                bill: bill,
+                                isExpanded: expandedBillId == bill.id,
+                                onTap: {
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                        if expandedBillId == bill.id {
+                                            expandedBillId = nil
+                                        } else {
+                                            expandedBillId = bill.id
+                                        }
+                                    }
+                                }
+                            )
+                            .listRowBackground(Color.white.opacity(0.05))
+                            .listRowSeparatorTint(Color.white.opacity(0.1))
                         }
                         .onDelete(perform: viewModel.deleteBill)
                     }
@@ -990,6 +1144,8 @@ struct HistoryView: View {
 // MARK: - History Row View
 struct HistoryRowView: View {
     let bill: SavedBill
+    let isExpanded: Bool
+    let onTap: () -> Void
 
     private static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -1010,80 +1166,154 @@ struct HistoryRowView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Header: Emoji + Location or Date
-            HStack(spacing: 8) {
-                // Sentiment emoji (if available)
-                if let sentiment = bill.sentiment {
-                    Text(sentiment)
-                        .font(.system(size: 20))
-                }
+        Button(action: onTap) {
+            VStack(alignment: .leading, spacing: 12) {
+                // Header: Emoji + Location or Date + Chevron
+                HStack(spacing: 8) {
+                    // Sentiment emoji (if available)
+                    if let sentiment = bill.sentiment {
+                        Text(sentiment)
+                            .font(.system(size: 20))
+                    }
 
-                // Location name or date
-                if let locationName = bill.locationName {
-                    Text(locationName)
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
-                        .foregroundColor(.white)
-                        .lineLimit(1)
-                }
+                    // Location name or date
+                    if let locationName = bill.locationName {
+                        Text(locationName)
+                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .foregroundColor(.white)
+                            .lineLimit(1)
+                    }
 
-                Spacer()
+                    Spacer()
 
-                // Date (smaller, on the right)
-                Text(Self.dateFormatter.string(from: bill.date))
-                    .font(.system(size: 11, weight: .medium, design: .rounded))
-                    .foregroundColor(.white.opacity(0.5))
-            }
-
-            // Main info row
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Bill")
+                    // Date (smaller, on the right)
+                    Text(Self.dateFormatter.string(from: bill.date))
                         .font(.system(size: 11, weight: .medium, design: .rounded))
                         .foregroundColor(.white.opacity(0.5))
-                    Text(formatCurrency(bill.billAmount))
-                        .font(.system(size: 16, weight: .semibold, design: .rounded))
-                        .foregroundColor(.white)
+
+                    // Chevron indicator
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.4))
+                        .rotationEffect(.degrees(isExpanded ? 90 : 0))
                 }
 
-                Spacer()
-
-                VStack(alignment: .center, spacing: 4) {
-                    Text("Tip")
-                        .font(.system(size: 11, weight: .medium, design: .rounded))
-                        .foregroundColor(.white.opacity(0.5))
-                    Text("\(Int(bill.tipPercentage))%")
-                        .font(.system(size: 16, weight: .semibold, design: .rounded))
-                        .foregroundColor(.mint)
-                }
-
-                Spacer()
-
-                VStack(alignment: .trailing, spacing: 4) {
-                    Text("Total")
-                        .font(.system(size: 11, weight: .medium, design: .rounded))
-                        .foregroundColor(.white.opacity(0.5))
-                    Text(formatCurrency(bill.totalAmount))
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
-                }
-            }
-
-            // Split info (if applicable)
-            if bill.numberOfPeople > 1 {
+                // Main info row
                 HStack {
-                    Image(systemName: "person.2.fill")
-                        .font(.system(size: 12))
-                        .foregroundColor(.mint.opacity(0.7))
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Bill")
+                            .font(.system(size: 11, weight: .medium, design: .rounded))
+                            .foregroundColor(.white.opacity(0.5))
+                        Text(formatCurrency(bill.billAmount))
+                            .font(.system(size: 16, weight: .semibold, design: .rounded))
+                            .foregroundColor(.white)
+                    }
 
-                    Text("Split \(bill.numberOfPeople) ways: \(formatCurrency(bill.amountPerPerson)) each")
-                        .font(.system(size: 13, weight: .medium, design: .rounded))
-                        .foregroundColor(.mint)
+                    Spacer()
+
+                    VStack(alignment: .center, spacing: 4) {
+                        Text("Tip")
+                            .font(.system(size: 11, weight: .medium, design: .rounded))
+                            .foregroundColor(.white.opacity(0.5))
+                        Text("\(Int(bill.tipPercentage))%")
+                            .font(.system(size: 16, weight: .semibold, design: .rounded))
+                            .foregroundColor(.mint)
+                        Text(formatCurrency(bill.tipAmount))
+                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                            .foregroundColor(.white.opacity(0.5))
+                    }
+
+                    Spacer()
+
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Text("Total")
+                            .font(.system(size: 11, weight: .medium, design: .rounded))
+                            .foregroundColor(.white.opacity(0.5))
+                        Text(formatCurrency(bill.totalAmount))
+                            .font(.system(size: 16, weight: .bold, design: .rounded))
+                            .foregroundColor(.white)
+                    }
                 }
-                .padding(.top, 4)
+
+                // Expanded Details
+                if isExpanded {
+                    VStack(alignment: .leading, spacing: 10) {
+                        // Divider
+                        Rectangle()
+                            .fill(Color.white.opacity(0.15))
+                            .frame(height: 1)
+                            .padding(.vertical, 4)
+
+                        // Tip Amount
+                        HStack {
+                            Image(systemName: "hand.thumbsup.fill")
+                                .font(.system(size: 12))
+                                .foregroundColor(.mint.opacity(0.7))
+                            Text("Tip Amount")
+                                .font(.system(size: 13, weight: .medium, design: .rounded))
+                                .foregroundColor(.white.opacity(0.7))
+                            Spacer()
+                            Text(formatCurrency(bill.tipAmount))
+                                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                .foregroundColor(.mint)
+                        }
+
+                        // Split info (if applicable)
+                        if bill.numberOfPeople > 1 {
+                            HStack {
+                                Image(systemName: "person.2.fill")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.mint.opacity(0.7))
+                                Text("Split \(bill.numberOfPeople) ways")
+                                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                                    .foregroundColor(.white.opacity(0.7))
+                                Spacer()
+                                Text("\(formatCurrency(bill.amountPerPerson)) each")
+                                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                    .foregroundColor(.mint)
+                            }
+                        }
+
+                        // Notes (if available)
+                        if let notes = bill.notes, !notes.isEmpty {
+                            HStack(alignment: .top) {
+                                Image(systemName: "note.text")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.mint.opacity(0.7))
+                                    .padding(.top, 2)
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Notes")
+                                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                                        .foregroundColor(.white.opacity(0.7))
+                                    Text(notes)
+                                        .font(.system(size: 14, weight: .regular, design: .rounded))
+                                        .foregroundColor(.white.opacity(0.9))
+                                        .italic()
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                            }
+                        }
+                    }
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                } else {
+                    // Show split info in collapsed state
+                    if bill.numberOfPeople > 1 {
+                        HStack {
+                            Image(systemName: "person.2.fill")
+                                .font(.system(size: 12))
+                                .foregroundColor(.mint.opacity(0.7))
+
+                            Text("Split \(bill.numberOfPeople) ways: \(formatCurrency(bill.amountPerPerson)) each")
+                                .font(.system(size: 13, weight: .medium, design: .rounded))
+                                .foregroundColor(.mint)
+                        }
+                        .padding(.top, 4)
+                    }
+                }
             }
+            .padding(.vertical, 8)
         }
-        .padding(.vertical, 8)
+        .buttonStyle(.plain)
     }
 }
 

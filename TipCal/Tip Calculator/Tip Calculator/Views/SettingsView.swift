@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CoreLocation
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
@@ -20,6 +21,10 @@ struct SettingsView: View {
     @AppStorage("emoji_bad") var emojiBad: String = "😢"
     @AppStorage("emoji_ok") var emojiOk: String = "😐"
     @AppStorage("emoji_good") var emojiGood: String = "🤩"
+
+    // MARK: - Location Settings
+    @AppStorage("locationEnabled") var locationEnabled: Bool = true
+    @State private var locationManager = LocationManager()
 
     var body: some View {
         ZStack {
@@ -58,7 +63,7 @@ struct SettingsView: View {
                 }
                 .padding(.top, 24)
 
-                // Settings Cards
+                // Tip Settings Cards
                 VStack(spacing: 16) {
                     SentimentSettingRow(
                         emoji: $emojiBad,
@@ -79,6 +84,22 @@ struct SettingsView: View {
                     )
                 }
                 .padding(.horizontal, 20)
+
+                // Location Settings Section
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Location")
+                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .foregroundColor(.white.opacity(0.5))
+                        .padding(.leading, 4)
+
+                    LocationSettingRow(
+                        locationEnabled: $locationEnabled,
+                        authorizationStatus: locationManager.authorizationStatus,
+                        locationManager: locationManager
+                    )
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
 
                 Spacer()
 
@@ -270,6 +291,132 @@ struct SentimentSettingRow: View {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .stroke(Color.white.opacity(0.1), lineWidth: 1)
         )
+    }
+}
+
+// MARK: - Location Setting Row
+struct LocationSettingRow: View {
+    @Binding var locationEnabled: Bool
+    let authorizationStatus: CLAuthorizationStatus
+    let locationManager: LocationManager
+
+    private var isSystemPermissionDenied: Bool {
+        authorizationStatus == .denied || authorizationStatus == .restricted
+    }
+
+    private var isNotDetermined: Bool {
+        authorizationStatus == .notDetermined
+    }
+
+    var body: some View {
+        VStack(spacing: 12) {
+            HStack(spacing: 14) {
+                // Location icon
+                Image(systemName: "location.fill")
+                    .font(.system(size: 20))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color.mint, Color.teal],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 36, height: 36)
+                    .background(Color.mint.opacity(0.15))
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+
+                // Label and subtitle
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Save Restaurant Location")
+                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        .foregroundColor(.white)
+
+                    Text("Attach venue names to your bill history")
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .foregroundColor(.white.opacity(0.5))
+                }
+
+                Spacer()
+
+                // Toggle
+                Toggle("", isOn: Binding(
+                    get: {
+                        // Show OFF if system permission is denied, regardless of user preference
+                        if isSystemPermissionDenied {
+                            return false
+                        }
+                        return locationEnabled
+                    },
+                    set: { newValue in
+                        locationEnabled = newValue
+                        // If turning ON and permission not yet requested, request it
+                        if newValue && isNotDetermined {
+                            locationManager.requestPermission()
+                        }
+                    }
+                ))
+                    .tint(.mint)
+                    .labelsHidden()
+                    .disabled(isSystemPermissionDenied)
+            }
+
+            // Warning and settings button if system permission denied
+            if isSystemPermissionDenied {
+                VStack(spacing: 12) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 12))
+                            .foregroundColor(.orange)
+
+                        Text("Location access is denied in System Settings")
+                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                            .foregroundColor(.orange.opacity(0.9))
+
+                        Spacer()
+                    }
+
+                    // Open System Settings button
+                    Button {
+                        openSystemSettings()
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "gear")
+                                .font(.system(size: 14, weight: .medium))
+                            Text("Open System Settings")
+                                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(Color.white.opacity(0.15))
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                        )
+                    }
+                    .buttonStyle(ScaleButtonStyle())
+                }
+                .padding(.top, 4)
+            }
+        }
+        .padding(16)
+        .background(.ultraThinMaterial)
+        .background(Color.white.opacity(0.05))
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+        )
+    }
+
+    /// Opens the app's settings page in System Settings
+    private func openSystemSettings() {
+        #if os(iOS)
+        if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
+            UIApplication.shared.open(settingsURL)
+        }
+        #endif
     }
 }
 

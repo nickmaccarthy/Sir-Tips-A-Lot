@@ -14,9 +14,15 @@
 		41D161B02EF83D330004C800 /* SavedBill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161AF2EF83D330004C800 /* SavedBill.swift */; };
 		41D161B12EF83D330004C800 /* ScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161B22EF83D330004C800 /* ScannerView.swift */; };
 		41D161B42EF83D330004C800 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161B52EF83D330004C800 /* SettingsView.swift */; };
+		41D161D02EF83D330004C800 /* SplashScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161D12EF83D330004C800 /* SplashScreenView.swift */; };
+		41D161D22EF83D330004C800 /* LocationOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161D32EF83D330004C800 /* LocationOnboardingView.swift */; };
 		41D161C12EF83D330004C800 /* TipCalculatorViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161C02EF83D330004C800 /* TipCalculatorViewModelTests.swift */; };
 		41D161C32EF83D330004C800 /* SavedBillTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161C22EF83D330004C800 /* SavedBillTests.swift */; };
 		41D161C52EF83D330004C800 /* NumberParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161C42EF83D330004C800 /* NumberParsingTests.swift */; };
+		41D161E02EF83D330004C800 /* TipProduct.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161E12EF83D330004C800 /* TipProduct.swift */; };
+		41D161E22EF83D330004C800 /* StoreManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161E32EF83D330004C800 /* StoreManager.swift */; };
+		41D161E62EF83D330004C800 /* StoreManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161E72EF83D330004C800 /* StoreManagerTests.swift */; };
+		41D161F02EF83D330004C800 /* LocationSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161F12EF83D330004C800 /* LocationSettingsTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,10 +44,17 @@
 		41D161AF2EF83D330004C800 /* SavedBill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedBill.swift; sourceTree = "<group>"; };
 		41D161B22EF83D330004C800 /* ScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerView.swift; sourceTree = "<group>"; };
 		41D161B52EF83D330004C800 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		41D161D12EF83D330004C800 /* SplashScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreenView.swift; sourceTree = "<group>"; };
+		41D161D32EF83D330004C800 /* LocationOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationOnboardingView.swift; sourceTree = "<group>"; };
 		41D161B82EF83D330004C800 /* Tip CalculatorTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Tip CalculatorTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		41D161C02EF83D330004C800 /* TipCalculatorViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TipCalculatorViewModelTests.swift; sourceTree = "<group>"; };
 		41D161C22EF83D330004C800 /* SavedBillTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedBillTests.swift; sourceTree = "<group>"; };
 		41D161C42EF83D330004C800 /* NumberParsingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NumberParsingTests.swift; sourceTree = "<group>"; };
+		41D161E12EF83D330004C800 /* TipProduct.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TipProduct.swift; sourceTree = "<group>"; };
+		41D161E32EF83D330004C800 /* StoreManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreManager.swift; sourceTree = "<group>"; };
+		41D161E52EF83D330004C800 /* Products.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Products.storekit; sourceTree = "<group>"; };
+		41D161E72EF83D330004C800 /* StoreManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreManagerTests.swift; sourceTree = "<group>"; };
+		41D161F12EF83D330004C800 /* LocationSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSettingsTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,13 +97,24 @@
 			isa = PBXGroup;
 			children = (
 				41D161AE2EF83D330004C800 /* Models */,
+				41D161E42EF83D330004C800 /* Services */,
 				41D161B32EF83D330004C800 /* Views */,
 				41D161A02EF83D330004C800 /* Tip_CalculatorApp.swift */,
 				41D161A22EF83D330004C800 /* ContentView.swift */,
 				41D161A42EF83D330004C800 /* TipCalculatorViewModel.swift */,
 				41D161A62EF83D330004C800 /* Assets.xcassets */,
+				41D161E52EF83D330004C800 /* Products.storekit */,
 			);
 			path = "Tip Calculator";
+			sourceTree = "<group>";
+		};
+		41D161E42EF83D330004C800 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				41D161E12EF83D330004C800 /* TipProduct.swift */,
+				41D161E32EF83D330004C800 /* StoreManager.swift */,
+			);
+			path = Services;
 			sourceTree = "<group>";
 		};
 		41D161AE2EF83D330004C800 /* Models */ = {
@@ -104,8 +128,10 @@
 		41D161B32EF83D330004C800 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				41D161D32EF83D330004C800 /* LocationOnboardingView.swift */,
 				41D161B22EF83D330004C800 /* ScannerView.swift */,
 				41D161B52EF83D330004C800 /* SettingsView.swift */,
+				41D161D12EF83D330004C800 /* SplashScreenView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -116,6 +142,8 @@
 				41D161C02EF83D330004C800 /* TipCalculatorViewModelTests.swift */,
 				41D161C22EF83D330004C800 /* SavedBillTests.swift */,
 				41D161C42EF83D330004C800 /* NumberParsingTests.swift */,
+				41D161E72EF83D330004C800 /* StoreManagerTests.swift */,
+				41D161F12EF83D330004C800 /* LocationSettingsTests.swift */,
 			);
 			path = "Tip CalculatorTests";
 			sourceTree = "<group>";
@@ -230,6 +258,10 @@
 				41D161B02EF83D330004C800 /* SavedBill.swift in Sources */,
 				41D161B12EF83D330004C800 /* ScannerView.swift in Sources */,
 				41D161B42EF83D330004C800 /* SettingsView.swift in Sources */,
+				41D161D02EF83D330004C800 /* SplashScreenView.swift in Sources */,
+				41D161D22EF83D330004C800 /* LocationOnboardingView.swift in Sources */,
+				41D161E02EF83D330004C800 /* TipProduct.swift in Sources */,
+				41D161E22EF83D330004C800 /* StoreManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -240,6 +272,8 @@
 				41D161C12EF83D330004C800 /* TipCalculatorViewModelTests.swift in Sources */,
 				41D161C32EF83D330004C800 /* SavedBillTests.swift in Sources */,
 				41D161C52EF83D330004C800 /* NumberParsingTests.swift in Sources */,
+				41D161E62EF83D330004C800 /* StoreManagerTests.swift in Sources */,
+				41D161F02EF83D330004C800 /* LocationSettingsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
