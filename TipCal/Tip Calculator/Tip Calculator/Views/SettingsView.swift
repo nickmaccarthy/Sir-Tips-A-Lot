@@ -26,6 +26,9 @@ struct SettingsView: View {
     @AppStorage("locationEnabled") var locationEnabled: Bool = true
     @State private var locationManager = LocationManager()
 
+    // MARK: - Scanner Settings
+    @AppStorage("enhancedScannerEnabled") var enhancedScannerEnabled: Bool = true
+
     var body: some View {
         ZStack {
             // Background
@@ -97,6 +100,18 @@ struct SettingsView: View {
                         authorizationStatus: locationManager.authorizationStatus,
                         locationManager: locationManager
                     )
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+
+                // Scanner Settings Section
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Scanner")
+                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .foregroundColor(.white.opacity(0.5))
+                        .padding(.leading, 4)
+
+                    ScannerSettingRow(enhancedScannerEnabled: $enhancedScannerEnabled)
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 8)
@@ -417,6 +432,72 @@ struct LocationSettingRow: View {
             UIApplication.shared.open(settingsURL)
         }
         #endif
+    }
+}
+
+// MARK: - Scanner Setting Row
+struct ScannerSettingRow: View {
+    @Binding var enhancedScannerEnabled: Bool
+
+    var body: some View {
+        VStack(spacing: 12) {
+            HStack(spacing: 14) {
+                // Scanner icon
+                Image(systemName: "doc.viewfinder")
+                    .font(.system(size: 20))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color.mint, Color.teal],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 36, height: 36)
+                    .background(Color.mint.opacity(0.15))
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+
+                // Label and subtitle
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Enhanced Scanner")
+                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        .foregroundColor(.white)
+
+                    Text(enhancedScannerEnabled ? "Document mode with better accuracy" : "Live camera mode")
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .foregroundColor(.white.opacity(0.5))
+                }
+
+                Spacer()
+
+                // Toggle
+                Toggle("", isOn: $enhancedScannerEnabled)
+                    .tint(.mint)
+                    .labelsHidden()
+            }
+
+            // Explanation text
+            HStack(spacing: 8) {
+                Image(systemName: "info.circle")
+                    .font(.system(size: 12))
+                    .foregroundColor(.mint.opacity(0.7))
+
+                Text(enhancedScannerEnabled
+                     ? "Scans receipt as a document for better text recognition"
+                     : "Uses live camera with real-time detection")
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .foregroundColor(.white.opacity(0.5))
+
+                Spacer()
+            }
+        }
+        .padding(16)
+        .background(.ultraThinMaterial)
+        .background(Color.white.opacity(0.05))
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+        )
     }
 }
 

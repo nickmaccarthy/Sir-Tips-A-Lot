@@ -24,6 +24,21 @@ class TipCalculatorViewModel: ObservableObject {
 
     /// Flag to prevent auto-save while user is editing notes
     @Published var isEditingNote: Bool = false
+    
+    // MARK: - Scanned Receipt Properties
+    
+    /// Scanned subtotal from receipt (the pre-gratuity amount)
+    @Published var scannedSubtotal: Double?
+    
+    /// Scanned total from receipt (may include gratuity already)
+    @Published var scannedTotal: Double?
+    
+    /// Detected gratuity from receipt (if pre-included)
+    @Published var detectedGratuityAmount: Double?
+    @Published var detectedGratuityPercentage: Double?
+    
+    /// Whether to tip on subtotal (true) or total (false) when receipt breakdown available
+    @Published var tipOnSubtotal: Bool = true
 
     /// Location manager for fetching venue names (lazy to avoid MainActor isolation issues)
     @MainActor lazy var locationManager = LocationManager()
@@ -92,7 +107,32 @@ class TipCalculatorViewModel: ObservableObject {
 
     var amountPerPerson: Double {
         guard numberOfPeopleValue > 0 else { return 0 }
-        return totalAmount / Double(numberOfPeopleValue)
+        return grandTotal / Double(numberOfPeopleValue)
+    }
+    
+    // MARK: - Receipt Breakdown Properties
+    
+    /// Whether we have a scanned receipt with subtotal/total breakdown
+    var hasReceiptBreakdown: Bool {
+        scannedSubtotal != nil || scannedTotal != nil
+    }
+    
+    /// The grand total: scannedTotal + tipAmount if we have a receipt, otherwise billValue + tipAmount
+    var grandTotal: Double {
+        if let receiptTotal = scannedTotal {
+            // Receipt has a total (may include gratuity already)
+            // Add our tip on top of the appropriate base
+            return receiptTotal + tipAmount
+        }
+        return totalAmount
+    }
+    
+    /// Clears all scanned receipt data
+    func clearScannedData() {
+        scannedSubtotal = nil
+        scannedTotal = nil
+        detectedGratuityAmount = nil
+        detectedGratuityPercentage = nil
     }
 
     // MARK: - Lifetime Statistics
@@ -144,6 +184,7 @@ class TipCalculatorViewModel: ObservableObject {
         selectedSentiment = "ok"
         noteText = ""
         isEditingNote = false
+        clearScannedData()
         // Note: selectedTipPercentage will be set by ContentView when sentiment changes
     }
 

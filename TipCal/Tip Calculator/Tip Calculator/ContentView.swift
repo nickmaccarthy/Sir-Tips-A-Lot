@@ -32,12 +32,35 @@ struct ContentView: View {
     @AppStorage("emoji_ok") private var emojiOk: String = "😐"
     @AppStorage("emoji_good") private var emojiGood: String = "🤩"
 
+    // MARK: - Scanner Settings
+    @AppStorage("enhancedScannerEnabled") private var enhancedScannerEnabled: Bool = true
+
     // MARK: - Haptic Feedback
     private func triggerHaptic(style: UIImpactFeedbackGenerator.FeedbackStyle = .medium) {
         #if os(iOS)
         let generator = UIImpactFeedbackGenerator(style: style)
         generator.impactOccurred()
         #endif
+    }
+
+    // MARK: - Scanner Result Handler
+    private func handleScannedAmounts(_ selectedAmounts: SelectedAmounts) {
+        // Store scanned receipt data
+        viewModel.scannedSubtotal = selectedAmounts.subtotal
+        viewModel.scannedTotal = selectedAmounts.total
+
+        if let gratuity = selectedAmounts.gratuity {
+            viewModel.detectedGratuityAmount = gratuity.amount
+            viewModel.detectedGratuityPercentage = gratuity.percentage
+        }
+
+        // Set the bill amount to the subtotal (what we tip on)
+        if let subtotal = selectedAmounts.subtotal {
+            viewModel.billAmountString = String(format: "%.2f", subtotal)
+        } else if let total = selectedAmounts.total {
+            // If no subtotal, use total
+            viewModel.billAmountString = String(format: "%.2f", total)
+        }
     }
 
     // MARK: - Sentiment Emoji Helper
@@ -61,9 +84,9 @@ struct ContentView: View {
                     Label("How was the service?", systemImage: "face.smiling")
                         .font(.subheadline.weight(.semibold))
                         .foregroundColor(.white.opacity(0.7))
-                    
+
                     Spacer()
-                    
+
                     Button {
                         showTipInfoPopover = true
                     } label: {
@@ -76,7 +99,7 @@ struct ContentView: View {
                             Text("Customize Your Tips")
                                 .font(.system(size: 14, weight: .bold, design: .rounded))
                                 .foregroundColor(.white)
-                            
+
                             Text("You can personalize the tip percentages and emojis in Settings to match your preferences.")
                                 .font(.system(size: 13, weight: .medium, design: .rounded))
                                 .foregroundColor(.white.opacity(0.8))
@@ -384,6 +407,22 @@ struct ContentView: View {
 
                     // Results Card
                     VStack(spacing: 0) {
+                        // Gratuity Warning (if detected on receipt)
+                        if let gratuityAmount = viewModel.detectedGratuityAmount {
+                            HStack(spacing: 8) {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundColor(.yellow)
+                                if let percentage = viewModel.detectedGratuityPercentage {
+                                    Text("Receipt includes \(Int(percentage))% gratuity ($\(String(format: "%.2f", gratuityAmount)))")
+                                } else {
+                                    Text("Receipt includes gratuity ($\(String(format: "%.2f", gratuityAmount)))")
+                                }
+                            }
+                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                            .foregroundColor(.orange)
+                            .padding(.bottom, 12)
+                        }
+
                         // Tip Amount
                         ResultRow(
                             icon: "hand.thumbsup.fill",
@@ -396,25 +435,63 @@ struct ContentView: View {
                             .background(Color.white.opacity(0.1))
                             .padding(.vertical, 12)
 
-                        // Subtotal
-                        ResultRow(
-                            icon: "plus.circle.fill",
-                            label: "Subtotal",
-                            amount: viewModel.billValue,
-                            style: .regular
-                        )
+                        // Receipt Breakdown (if scanned)
+                        if viewModel.hasReceiptBreakdown {
+                            if let subtotal = viewModel.scannedSubtotal {
+                                ResultRow(
+                                    icon: "doc.text.fill",
+                                    label: "Receipt Subtotal",
+                                    amount: subtotal,
+                                    style: .regular
+                                )
 
-                        Divider()
-                            .background(Color.white.opacity(0.1))
-                            .padding(.vertical, 12)
+                                Divider()
+                                    .background(Color.white.opacity(0.1))
+                                    .padding(.vertical, 12)
+                            }
 
-                        // Total
-                        ResultRow(
-                            icon: "creditcard.fill",
-                            label: "Total",
-                            amount: viewModel.totalAmount,
-                            style: .total
-                        )
+                            if let receiptTotal = viewModel.scannedTotal {
+                                ResultRow(
+                                    icon: "doc.text.fill",
+                                    label: "Receipt Total",
+                                    amount: receiptTotal,
+                                    style: .regular
+                                )
+
+                                Divider()
+                                    .background(Color.white.opacity(0.1))
+                                    .padding(.vertical, 12)
+                            }
+
+                            // Grand Total (receipt total + our tip)
+                            ResultRow(
+                                icon: "creditcard.fill",
+                                label: "Grand Total",
+                                amount: viewModel.grandTotal,
+                                style: .total
+                            )
+                        } else {
+                            // Standard display (no scanned receipt)
+                            // Subtotal
+                            ResultRow(
+                                icon: "plus.circle.fill",
+                                label: "Subtotal",
+                                amount: viewModel.billValue,
+                                style: .regular
+                            )
+
+                            Divider()
+                                .background(Color.white.opacity(0.1))
+                                .padding(.vertical, 12)
+
+                            // Total
+                            ResultRow(
+                                icon: "creditcard.fill",
+                                label: "Total",
+                                amount: viewModel.totalAmount,
+                                style: .total
+                            )
+                        }
 
                         // Per Person (if splitting)
                         if viewModel.numberOfPeopleValue > 1 {
@@ -666,8 +743,15 @@ struct ContentView: View {
                 SettingsView()
             }
             .sheet(isPresented: $isShowingScanner) {
-                ScannerContainerView { scannedAmount in
-                    viewModel.billAmountString = String(format: "%.2f", scannedAmount)
+                // Use enhanced Vision scanner or basic DataScanner based on setting
+                if enhancedScannerEnabled {
+                    VisionScannerContainerView { selectedAmounts in
+                        handleScannedAmounts(selectedAmounts)
+                    }
+                } else {
+                    ScannerContainerView { selectedAmounts in
+                        handleScannedAmounts(selectedAmounts)
+                    }
                 }
             }
             .onAppear {
