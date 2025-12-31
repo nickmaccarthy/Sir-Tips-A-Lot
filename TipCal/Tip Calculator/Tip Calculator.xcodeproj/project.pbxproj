@@ -13,21 +13,21 @@
 		41D161A72EF83D330004C800 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 41D161A62EF83D330004C800 /* Assets.xcassets */; };
 		41D161B02EF83D330004C800 /* SavedBill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161AF2EF83D330004C800 /* SavedBill.swift */; };
 		41D161B12EF83D330004C800 /* ScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161B22EF83D330004C800 /* ScannerView.swift */; };
-		41D161F32EF83D330004C800 /* VisionScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161F22EF83D330004C800 /* VisionScannerView.swift */; };
 		41D161B42EF83D330004C800 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161B52EF83D330004C800 /* SettingsView.swift */; };
-		41D161D02EF83D330004C800 /* SplashScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161D12EF83D330004C800 /* SplashScreenView.swift */; };
-		41D161D22EF83D330004C800 /* LocationOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161D32EF83D330004C800 /* LocationOnboardingView.swift */; };
-		41D161FA2EF83D330004C800 /* EditBillView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161FB2EF83D330004C800 /* EditBillView.swift */; };
-		41D161FC2EF83D330004C800 /* LocationPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161FD2EF83D330004C800 /* LocationPickerView.swift */; };
-		41D161FE2EF83D330004C800 /* Currency.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161FF2EF83D330004C800 /* Currency.swift */; };
-		41D162002EF83D330004C800 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D162012EF83D330004C800 /* LocationManager.swift */; };
 		41D161C12EF83D330004C800 /* TipCalculatorViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161C02EF83D330004C800 /* TipCalculatorViewModelTests.swift */; };
 		41D161C32EF83D330004C800 /* SavedBillTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161C22EF83D330004C800 /* SavedBillTests.swift */; };
 		41D161C52EF83D330004C800 /* NumberParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161C42EF83D330004C800 /* NumberParsingTests.swift */; };
+		41D161D02EF83D330004C800 /* SplashScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161D12EF83D330004C800 /* SplashScreenView.swift */; };
+		41D161D22EF83D330004C800 /* LocationOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161D32EF83D330004C800 /* LocationOnboardingView.swift */; };
 		41D161E02EF83D330004C800 /* TipProduct.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161E12EF83D330004C800 /* TipProduct.swift */; };
 		41D161E22EF83D330004C800 /* StoreManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161E32EF83D330004C800 /* StoreManager.swift */; };
 		41D161E62EF83D330004C800 /* StoreManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161E72EF83D330004C800 /* StoreManagerTests.swift */; };
 		41D161F02EF83D330004C800 /* LocationSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161F12EF83D330004C800 /* LocationSettingsTests.swift */; };
+		41D161F32EF83D330004C800 /* VisionScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161F22EF83D330004C800 /* VisionScannerView.swift */; };
+		41D161FA2EF83D330004C800 /* EditBillView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161FB2EF83D330004C800 /* EditBillView.swift */; };
+		41D161FC2EF83D330004C800 /* LocationPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161FD2EF83D330004C800 /* LocationPickerView.swift */; };
+		41D161FE2EF83D330004C800 /* Currency.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161FF2EF83D330004C800 /* Currency.swift */; };
+		41D162002EF83D330004C800 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D162012EF83D330004C800 /* LocationManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,19 +48,19 @@
 		41D161A62EF83D330004C800 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		41D161AF2EF83D330004C800 /* SavedBill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedBill.swift; sourceTree = "<group>"; };
 		41D161B22EF83D330004C800 /* ScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerView.swift; sourceTree = "<group>"; };
-		41D161F22EF83D330004C800 /* VisionScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionScannerView.swift; sourceTree = "<group>"; };
 		41D161B52EF83D330004C800 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		41D161D12EF83D330004C800 /* SplashScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreenView.swift; sourceTree = "<group>"; };
-		41D161D32EF83D330004C800 /* LocationOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationOnboardingView.swift; sourceTree = "<group>"; };
 		41D161B82EF83D330004C800 /* Tip CalculatorTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Tip CalculatorTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		41D161C02EF83D330004C800 /* TipCalculatorViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TipCalculatorViewModelTests.swift; sourceTree = "<group>"; };
 		41D161C22EF83D330004C800 /* SavedBillTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedBillTests.swift; sourceTree = "<group>"; };
 		41D161C42EF83D330004C800 /* NumberParsingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NumberParsingTests.swift; sourceTree = "<group>"; };
+		41D161D12EF83D330004C800 /* SplashScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreenView.swift; sourceTree = "<group>"; };
+		41D161D32EF83D330004C800 /* LocationOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationOnboardingView.swift; sourceTree = "<group>"; };
 		41D161E12EF83D330004C800 /* TipProduct.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TipProduct.swift; sourceTree = "<group>"; };
 		41D161E32EF83D330004C800 /* StoreManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreManager.swift; sourceTree = "<group>"; };
 		41D161E52EF83D330004C800 /* Products.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Products.storekit; sourceTree = "<group>"; };
 		41D161E72EF83D330004C800 /* StoreManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreManagerTests.swift; sourceTree = "<group>"; };
 		41D161F12EF83D330004C800 /* LocationSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSettingsTests.swift; sourceTree = "<group>"; };
+		41D161F22EF83D330004C800 /* VisionScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionScannerView.swift; sourceTree = "<group>"; };
 		41D161FB2EF83D330004C800 /* EditBillView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditBillView.swift; sourceTree = "<group>"; };
 		41D161FD2EF83D330004C800 /* LocationPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationPickerView.swift; sourceTree = "<group>"; };
 		41D161FF2EF83D330004C800 /* Currency.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Currency.swift; sourceTree = "<group>"; };
@@ -118,16 +118,6 @@
 			path = "Tip Calculator";
 			sourceTree = "<group>";
 		};
-		41D161E42EF83D330004C800 /* Services */ = {
-			isa = PBXGroup;
-			children = (
-				41D161E12EF83D330004C800 /* TipProduct.swift */,
-				41D161E32EF83D330004C800 /* StoreManager.swift */,
-				41D162012EF83D330004C800 /* LocationManager.swift */,
-			);
-			path = Services;
-			sourceTree = "<group>";
-		};
 		41D161AE2EF83D330004C800 /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -161,6 +151,16 @@
 				41D161F12EF83D330004C800 /* LocationSettingsTests.swift */,
 			);
 			path = "Tip CalculatorTests";
+			sourceTree = "<group>";
+		};
+		41D161E42EF83D330004C800 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				41D161E12EF83D330004C800 /* TipProduct.swift */,
+				41D161E32EF83D330004C800 /* StoreManager.swift */,
+				41D162012EF83D330004C800 /* LocationManager.swift */,
+			);
+			path = Services;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -442,18 +442,21 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Sir Tips Alot";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Sir Tips-A-Lot needs camera access to scan receipts and detect bill totals.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Sir Tips-A-Lot uses your location to save the restaurant name with your receipt history.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarStyle = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "nmac.Tip-Calculator";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -473,18 +476,21 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Sir Tips Alot";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Sir Tips-A-Lot needs camera access to scan receipts and detect bill totals.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Sir Tips-A-Lot uses your location to save the restaurant name with your receipt history.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarStyle = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "nmac.Tip-Calculator";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
