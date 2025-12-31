@@ -18,7 +18,7 @@ This is my first iOS application.
 - 💵 **Quick Tip Calculation** — Enter your bill and instantly see the tip
 - 📈 **Round Up Tip** — Round your tip to the nearest dollar
 - 👥 **Split the Bill** — Divide among any number of people with per-person breakdown
-- 🔄 **Quick Reset** — Instantly clear and start a new calculation
+- 📷 **Auto scan your check** — Scan your check with your camera to auto populate ammounts and reccomended tip.  Auto detects checks that already have gratuity added as well!
 
 ### 🎭 Sentiment-Based Tipping
 - **Emoji Selection** — Rate service with 😢 (Meh), 😐 (OK), or 🤩 (Great)
@@ -49,7 +49,6 @@ This is my first iOS application.
 - 🌙 **Dark UI** — Modern glassmorphism with animated gradients
 - ✨ **Smooth Animations** — Polished transitions and haptic feedback
 - 🚀 **Splash Screen** — Branded launch experience
-- ❤️ **Tip Jar** — Support the developer via Venmo, Cash App, or PayPal
 
 ## Screenshots
 
