@@ -1198,6 +1198,7 @@ struct HistoryView: View {
     @State private var expandedBillId: UUID? = nil
     @State private var showClearConfirmation = false
     @State private var billToEdit: SavedBill? = nil
+    @State private var billToDelete: IndexSet? = nil
 
     var body: some View {
         ZStack {
@@ -1283,7 +1284,9 @@ struct HistoryView: View {
                             .listRowBackground(Color.white.opacity(0.05))
                             .listRowSeparatorTint(Color.white.opacity(0.1))
                         }
-                        .onDelete(perform: viewModel.deleteBill)
+                        .onDelete { indexSet in
+                            billToDelete = indexSet
+                        }
                     }
                     .listStyle(.plain)
                     .scrollContentBackground(.hidden)
@@ -1331,6 +1334,20 @@ struct HistoryView: View {
         }
         .sheet(item: $billToEdit) { bill in
             EditBillView(viewModel: viewModel, bill: bill)
+        }
+        .alert("Delete Bill?", isPresented: .init(
+            get: { billToDelete != nil },
+            set: { if !$0 { billToDelete = nil } }
+        )) {
+            Button("Cancel", role: .cancel) { billToDelete = nil }
+            Button("Delete", role: .destructive) {
+                if let indexSet = billToDelete {
+                    viewModel.deleteBill(at: indexSet)
+                }
+                billToDelete = nil
+            }
+        } message: {
+            Text("This bill will be permanently removed from your history.")
         }
     }
 }
