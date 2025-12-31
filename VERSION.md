@@ -4,10 +4,10 @@
 
 | Field | Value |
 |-------|-------|
-| **Version** | 1.0.0 |
-| **Build** | 1 |
-| **Release Date** | December 21, 2024 |
-| **Status** | Initial Release |
+| **Version** | 1.1.0 |
+| **Build** | (auto-incremented) |
+| **Release Date** | December 30, 2024 |
+| **Status** | Feature Release |
 
 ## Version Scheme
 
@@ -33,13 +33,13 @@ Format: Sequential integer (1, 2, 3, ...)
 
 ### In Xcode:
 1. Select Project → Target → **General** tab
-2. Update **Version** (e.g., 1.0.0 → 1.1.0)
+2. Update **Version** (e.g., 1.1.0 → 1.2.0)
 3. Build number auto-increments
 
 ### Via Command Line:
 ```bash
 # Set marketing version
-agvtool new-marketing-version 1.1.0
+agvtool new-marketing-version 1.2.0
 
 # Set build number
 agvtool new-version -all 42
@@ -52,7 +52,7 @@ agvtool what-marketing-version
 ### Update These Files:
 1. `VERSION.md` — Update the table above
 2. `CHANGELOG.md` — Add release notes
-3. Commit with tag: `git tag -a v1.1.0 -m "Version 1.1.0"`
+3. Commit with tag: `git tag -a v1.2.0 -m "Version 1.2.0"`
 
 ## Release Checklist
 
@@ -70,5 +70,5 @@ agvtool what-marketing-version
 
 | Version | Build | Date | Notes |
 |---------|-------|------|-------|
+| 1.1.0 | - | 2024-12-30 | Receipt scanning, sentiment tipping, location, multi-currency |
 | 1.0.0 | 1 | 2024-12-21 | Initial release |
-
