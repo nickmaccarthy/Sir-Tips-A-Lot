@@ -7,6 +7,7 @@
 
 import Foundation
 import CoreLocation
+import MapKit
 
 /// Manages location services for reverse geocoding restaurant/venue names
 @MainActor @Observable
@@ -16,6 +17,9 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
 
     private let locationManager = CLLocationManager()
     private let geocoder = CLGeocoder()
+
+    /// Search radius for nearby POI (in meters)
+    private let poiSearchRadius: CLLocationDistance = 50
 
     /// Current authorization status for location services
     var authorizationStatus: CLAuthorizationStatus
@@ -69,7 +73,13 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
             return nil
         }
 
-        // Reverse geocode the location
+        // Try MapKit POI search first for restaurant/bar names
+        if let poiName = await fetchNearbyRestaurant(at: location) {
+            currentPlaceName = poiName
+            return poiName
+        }
+
+        // Fall back to reverse geocoding
         return await reverseGeocode(location: location)
     }
 
@@ -81,6 +91,57 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
             self.locationContinuation = continuation
             locationManager.requestLocation()
         }
+    }
+
+    /// Searches for nearby restaurants, bars, or cafes using MapKit
+    /// - Parameter location: The location to search near
+    /// - Returns: The name of the closest restaurant/bar/cafe POI, or nil if none found
+    private func fetchNearbyRestaurant(at location: CLLocation) async -> String? {
+        let region = MKCoordinateRegion(
+            center: location.coordinate,
+            latitudinalMeters: poiSearchRadius * 2,
+            longitudinalMeters: poiSearchRadius * 2
+        )
+
+        // Search for food-related POIs
+        let request = MKLocalPointsOfInterestRequest(coordinateRegion: region)
+        request.pointOfInterestFilter = MKPointOfInterestFilter(including: [
+            .restaurant,
+            .cafe,
+            .bakery,
+            .brewery,
+            .winery,
+            .nightlife,
+            .foodMarket
+        ])
+
+        do {
+            let search = MKLocalSearch(request: request)
+            let response = try await search.start()
+
+            // Find the closest POI within our radius
+            var closestItem: MKMapItem?
+            var closestDistance: CLLocationDistance = .greatestFiniteMagnitude
+
+            for item in response.mapItems {
+                guard let itemLocation = item.placemark.location else { continue }
+                let distance = location.distance(from: itemLocation)
+
+                if distance < closestDistance && distance <= poiSearchRadius {
+                    closestDistance = distance
+                    closestItem = item
+                }
+            }
+
+            // Return the name of the closest POI
+            if let item = closestItem, let name = item.name {
+                return name
+            }
+        } catch {
+            print("MapKit POI search failed: \(error.localizedDescription)")
+        }
+
+        return nil
     }
 
     /// Reverse geocodes a location to extract the place name

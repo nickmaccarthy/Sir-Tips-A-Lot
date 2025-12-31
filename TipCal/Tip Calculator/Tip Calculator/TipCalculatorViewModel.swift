@@ -12,18 +12,33 @@ import CoreLocation
 
 class TipCalculatorViewModel: ObservableObject {
     @Published var billAmountString: String = ""
-    @Published var selectedTipPercentage: Double = 20.0
+    @Published var selectedTipPercentage: Double = 18.0
     @Published var roundUp: Bool = false
     @Published var numberOfPeopleString: String = "1"
     @Published var isCustomTipSelected: Bool = false
     @Published var customTipString: String = ""
-    @Published var selectedSentiment: String? = "good" // Default to "Good" sentiment
+    @Published var selectedSentiment: String? = "ok" // Default to "Ok" (middle) sentiment
     @Published var recentBills: [SavedBill] = []
     @Published var didAutoSave: Bool = false
     @Published var noteText: String = ""
 
     /// Flag to prevent auto-save while user is editing notes
     @Published var isEditingNote: Bool = false
+
+    // MARK: - Scanned Receipt Properties
+
+    /// Scanned subtotal from receipt (the pre-gratuity amount)
+    @Published var scannedSubtotal: Double?
+
+    /// Scanned total from receipt (may include gratuity already)
+    @Published var scannedTotal: Double?
+
+    /// Detected gratuity from receipt (if pre-included)
+    @Published var detectedGratuityAmount: Double?
+    @Published var detectedGratuityPercentage: Double?
+
+    /// Whether to tip on subtotal (true) or total (false) when receipt breakdown available
+    @Published var tipOnSubtotal: Bool = true
 
     /// Location manager for fetching venue names (lazy to avoid MainActor isolation issues)
     @MainActor lazy var locationManager = LocationManager()
@@ -92,7 +107,44 @@ class TipCalculatorViewModel: ObservableObject {
 
     var amountPerPerson: Double {
         guard numberOfPeopleValue > 0 else { return 0 }
-        return totalAmount / Double(numberOfPeopleValue)
+        return grandTotal / Double(numberOfPeopleValue)
+    }
+
+    /// Tip amount per person when splitting
+    var tipPerPerson: Double {
+        guard numberOfPeopleValue > 0 else { return 0 }
+        return tipAmount / Double(numberOfPeopleValue)
+    }
+
+    /// Bill amount per person (subtotal split, before tip)
+    var billPerPerson: Double {
+        guard numberOfPeopleValue > 0 else { return 0 }
+        return billValue / Double(numberOfPeopleValue)
+    }
+
+    // MARK: - Receipt Breakdown Properties
+
+    /// Whether we have a scanned receipt with subtotal/total breakdown
+    var hasReceiptBreakdown: Bool {
+        scannedSubtotal != nil || scannedTotal != nil
+    }
+
+    /// The grand total: scannedTotal + tipAmount if we have a receipt, otherwise billValue + tipAmount
+    var grandTotal: Double {
+        if let receiptTotal = scannedTotal {
+            // Receipt has a total (may include gratuity already)
+            // Add our tip on top of the appropriate base
+            return receiptTotal + tipAmount
+        }
+        return totalAmount
+    }
+
+    /// Clears all scanned receipt data
+    func clearScannedData() {
+        scannedSubtotal = nil
+        scannedTotal = nil
+        detectedGratuityAmount = nil
+        detectedGratuityPercentage = nil
     }
 
     // MARK: - Lifetime Statistics
@@ -144,6 +196,7 @@ class TipCalculatorViewModel: ObservableObject {
         selectedSentiment = "ok"
         noteText = ""
         isEditingNote = false
+        clearScannedData()
         // Note: selectedTipPercentage will be set by ContentView when sentiment changes
     }
 
@@ -229,6 +282,14 @@ class TipCalculatorViewModel: ObservableObject {
         persistBills()
     }
 
+    /// Updates an existing bill with new values
+    func updateBill(id: UUID, with updatedBill: SavedBill) {
+        if let index = recentBills.firstIndex(where: { $0.id == id }) {
+            recentBills[index] = updatedBill
+            persistBills()
+        }
+    }
+
     /// Clears all saved bills from history
     func clearHistory() {
         recentBills.removeAll()
@@ -243,133 +304,6 @@ class TipCalculatorViewModel: ObservableObject {
             UserDefaults.standard.set(data, forKey: userDefaultsKey)
         } catch {
             print("Failed to encode saved bills: \(error)")
-        }
-    }
-}
-
-// MARK: - Location Manager
-
-/// Manages location services for reverse geocoding restaurant/venue names
-@MainActor @Observable
-class LocationManager: NSObject, CLLocationManagerDelegate {
-
-    // MARK: - Properties
-
-    private let locationManager = CLLocationManager()
-    private let geocoder = CLGeocoder()
-
-    /// Current authorization status for location services
-    var authorizationStatus: CLAuthorizationStatus
-
-    /// The most recently fetched place name from reverse geocoding
-    var currentPlaceName: String?
-
-    /// Indicates if a location fetch is in progress
-    var isFetching: Bool = false
-
-    /// Continuation for async location requests
-    private var locationContinuation: CheckedContinuation<CLLocation?, Never>?
-
-    // MARK: - Initialization
-
-    override init() {
-        self.authorizationStatus = CLLocationManager().authorizationStatus
-        super.init()
-        locationManager.delegate = self
-        locationManager.desiredAccuracy = kCLLocationAccuracyBest
-    }
-
-    // MARK: - Public Methods
-
-    /// Requests "When In Use" location permission from the user
-    func requestPermission() {
-        locationManager.requestWhenInUseAuthorization()
-    }
-
-    /// Fetches the current location and reverse geocodes it to a place name
-    /// - Returns: The name of the current location (e.g., "Olive Garden") or nil if unavailable
-    func fetchCurrentLocationName() async -> String? {
-        // Check user preference first - respect the toggle even if system permission is granted
-        let locationEnabled = UserDefaults.standard.object(forKey: "locationEnabled") as? Bool ?? true
-        guard locationEnabled else {
-            return nil
-        }
-
-        // Check authorization - don't request permission here to avoid unexpected dialogs
-        // Permission should be requested via LocationOnboardingView on first run
-        guard authorizationStatus == .authorizedWhenInUse || authorizationStatus == .authorizedAlways else {
-            return nil
-        }
-
-        isFetching = true
-        defer { isFetching = false }
-
-        // Get current location
-        guard let location = await getCurrentLocation() else {
-            return nil
-        }
-
-        // Reverse geocode the location
-        return await reverseGeocode(location: location)
-    }
-
-    // MARK: - Private Methods
-
-    /// Requests the current location using async/await
-    private func getCurrentLocation() async -> CLLocation? {
-        return await withCheckedContinuation { continuation in
-            self.locationContinuation = continuation
-            locationManager.requestLocation()
-        }
-    }
-
-    /// Reverse geocodes a location to extract the place name
-    private func reverseGeocode(location: CLLocation) async -> String? {
-        do {
-            let placemarks = try await geocoder.reverseGeocodeLocation(location)
-            guard let placemark = placemarks.first else { return nil }
-
-            // Try to get the most descriptive name available
-            // Priority: name (business name) > thoroughfare (street) > locality (city)
-            if let name = placemark.name, !name.isEmpty {
-                currentPlaceName = name
-                return name
-            } else if let thoroughfare = placemark.thoroughfare, !thoroughfare.isEmpty {
-                let streetName = thoroughfare
-                currentPlaceName = streetName
-                return streetName
-            } else if let locality = placemark.locality, !locality.isEmpty {
-                currentPlaceName = locality
-                return locality
-            }
-
-            return nil
-        } catch {
-            print("Reverse geocoding failed: \(error.localizedDescription)")
-            return nil
-        }
-    }
-
-    // MARK: - CLLocationManagerDelegate
-
-    nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        Task { @MainActor in
-            locationContinuation?.resume(returning: locations.first)
-            locationContinuation = nil
-        }
-    }
-
-    nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        Task { @MainActor in
-            print("Location manager failed with error: \(error.localizedDescription)")
-            locationContinuation?.resume(returning: nil)
-            locationContinuation = nil
-        }
-    }
-
-    nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        Task { @MainActor in
-            authorizationStatus = manager.authorizationStatus
         }
     }
 }
