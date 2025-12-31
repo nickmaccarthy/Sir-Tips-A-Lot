@@ -11,6 +11,7 @@ import CoreLocation
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showAppInfo = false
+    @State private var showTipJar = false
 
     // MARK: - Tip Preferences (persisted via @AppStorage)
     @AppStorage("tip_bad") var tipBad: Double = 15.0
@@ -26,8 +27,14 @@ struct SettingsView: View {
     @AppStorage("locationEnabled") var locationEnabled: Bool = true
     @State private var locationManager = LocationManager()
 
-    // MARK: - Scanner Settings
-    @AppStorage("enhancedScannerEnabled") var enhancedScannerEnabled: Bool = true
+    // MARK: - Scanner Settings (hidden for now, still in development)
+    @AppStorage("enhancedScannerEnabled") var enhancedScannerEnabled: Bool = false
+
+    // MARK: - Tip Options
+    @AppStorage("roundUpByDefault") var roundUpByDefault: Bool = false
+
+    // MARK: - Currency
+    @AppStorage("selectedCurrency") var selectedCurrency: String = "usd"
 
     var body: some View {
         ZStack {
@@ -42,29 +49,30 @@ struct SettingsView: View {
             )
             .ignoresSafeArea()
 
-            VStack(spacing: 24) {
-                // Header
-                VStack(spacing: 8) {
-                    Image(systemName: "slider.horizontal.3")
-                        .font(.system(size: 50))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [Color.mint, Color.teal],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Header
+                    VStack(spacing: 8) {
+                        Image(systemName: "slider.horizontal.3")
+                            .font(.system(size: 50))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [Color.mint, Color.teal],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
                             )
-                        )
 
-                    Text("Tip Settings")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
+                        Text("Tip Settings")
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .foregroundColor(.white)
 
-                    Text("Customize what each sentiment means to you")
-                        .font(.subheadline)
-                        .foregroundColor(.white.opacity(0.6))
-                        .multilineTextAlignment(.center)
-                }
-                .padding(.top, 24)
+                        Text("Customize what each sentiment means to you")
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.6))
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding(.top, 32)
 
                 // Tip Settings Cards
                 VStack(spacing: 16) {
@@ -104,32 +112,141 @@ struct SettingsView: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 8)
 
-                // Scanner Settings Section
+                // NOTE: Scanner Settings Section hidden for now (enhanced scanner still in development)
+                // Uncomment when ready to expose to users:
+                // VStack(alignment: .leading, spacing: 12) {
+                //     Text("Scanner")
+                //         .font(.system(size: 14, weight: .semibold, design: .rounded))
+                //         .foregroundColor(.white.opacity(0.5))
+                //         .padding(.leading, 4)
+                //
+                //     ScannerSettingRow(enhancedScannerEnabled: $enhancedScannerEnabled)
+                // }
+                // .padding(.horizontal, 20)
+                // .padding(.top, 8)
+
+                // Currency Section
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Scanner")
+                    Text("Currency")
                         .font(.system(size: 14, weight: .semibold, design: .rounded))
                         .foregroundColor(.white.opacity(0.5))
                         .padding(.leading, 4)
 
-                    ScannerSettingRow(enhancedScannerEnabled: $enhancedScannerEnabled)
+                    CurrencySettingRow(selectedCurrency: $selectedCurrency)
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 8)
 
-                Spacer()
+                // Tip Options Section
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Tip Options")
+                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .foregroundColor(.white.opacity(0.5))
+                        .padding(.leading, 4)
 
-                // About Button
-                Button {
-                    showAppInfo = true
-                } label: {
-                    HStack {
-                        Image(systemName: "info.circle")
-                        Text("About Sir Tips-A-Lot")
-                    }
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
-                    .foregroundColor(.white.opacity(0.6))
+                    RoundUpSettingRow(roundUpByDefault: $roundUpByDefault)
                 }
-                .padding(.bottom, 16)
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+
+                // About Section
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("About")
+                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .foregroundColor(.white.opacity(0.5))
+                        .padding(.leading, 4)
+
+                    Button {
+                        showAppInfo = true
+                    } label: {
+                        HStack(spacing: 14) {
+                            Image(systemName: "info.circle")
+                                .font(.system(size: 20))
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [Color.mint, Color.teal],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 36, height: 36)
+                                .background(Color.mint.opacity(0.15))
+                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("About Sir Tips-A-Lot")
+                                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                                    .foregroundColor(.white)
+
+                                Text("Version info and credits")
+                                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                                    .foregroundColor(.white.opacity(0.5))
+                            }
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.3))
+                        }
+                        .padding(16)
+                        .background(.ultraThinMaterial)
+                        .background(Color.white.opacity(0.05))
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                        )
+                    }
+                    .buttonStyle(ScaleButtonStyle())
+
+                    // Tip Developer Button
+                    Button {
+                        showTipJar = true
+                    } label: {
+                        HStack(spacing: 14) {
+                            Image(systemName: "heart.fill")
+                                .font(.system(size: 20))
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [Color.pink, Color.red],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 36, height: 36)
+                                .background(Color.pink.opacity(0.15))
+                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Tip the Developer")
+                                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                                    .foregroundColor(.white)
+
+                                Text("Support future development")
+                                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                                    .foregroundColor(.white.opacity(0.5))
+                            }
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.3))
+                        }
+                        .padding(16)
+                        .background(.ultraThinMaterial)
+                        .background(Color.white.opacity(0.05))
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                        )
+                    }
+                    .buttonStyle(ScaleButtonStyle())
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
 
                 // Done Button
                 Button {
@@ -150,13 +267,18 @@ struct SettingsView: View {
                         .clipShape(Capsule())
                 }
                 .padding(.horizontal, 24)
+                .padding(.top, 16)
                 .padding(.bottom, 40)
+                }
             }
         }
-        .presentationDetents([.medium])
+        .presentationDetents([.large])
         .presentationDragIndicator(.visible)
         .sheet(isPresented: $showAppInfo) {
             AppInfoView()
+        }
+        .sheet(isPresented: $showTipJar) {
+            TipJarView()
         }
     }
 }
@@ -498,6 +620,233 @@ struct ScannerSettingRow: View {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .stroke(Color.white.opacity(0.1), lineWidth: 1)
         )
+    }
+}
+
+// MARK: - Round Up Setting Row
+struct RoundUpSettingRow: View {
+    @Binding var roundUpByDefault: Bool
+    @AppStorage("selectedCurrency") private var selectedCurrency: String = "usd"
+
+    private var currency: Currency { Currency.from(selectedCurrency) }
+
+    /// Gets the singular unit name for the currency (e.g., "Dollar", "Euro", "Pound")
+    private var currencyUnitName: String {
+        // Extract the first word from display name (e.g., "US Dollar" -> "Dollar", "Euro" -> "Euro")
+        let parts = currency.displayName.components(separatedBy: " ")
+        return parts.last ?? "Dollar"
+    }
+
+    var body: some View {
+        VStack(spacing: 12) {
+            HStack(spacing: 14) {
+                // Round up icon
+                Image(systemName: "arrow.up.circle")
+                    .font(.system(size: 20))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color.mint, Color.teal],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 36, height: 36)
+                    .background(Color.mint.opacity(0.15))
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+
+                // Label and subtitle
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Round Up Tip")
+                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        .foregroundColor(.white)
+
+                    Text("Round tip to nearest \(currencyUnitName.lowercased())")
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .foregroundColor(.white.opacity(0.5))
+                }
+
+                Spacer()
+
+                // Toggle
+                Toggle("", isOn: $roundUpByDefault)
+                    .tint(.mint)
+                    .labelsHidden()
+            }
+
+            // Explanation text
+            HStack(spacing: 8) {
+                Image(systemName: "info.circle")
+                    .font(.system(size: 12))
+                    .foregroundColor(.mint.opacity(0.7))
+
+                Text("When enabled, tips will be rounded up by default")
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .foregroundColor(.white.opacity(0.5))
+
+                Spacer()
+            }
+        }
+        .padding(16)
+        .background(.ultraThinMaterial)
+        .background(Color.white.opacity(0.05))
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+        )
+    }
+}
+
+// MARK: - Currency Setting Row
+struct CurrencySettingRow: View {
+    @Binding var selectedCurrency: String
+    @State private var showingPicker = false
+
+    private var currency: Currency { Currency.from(selectedCurrency) }
+
+    var body: some View {
+        Button {
+            showingPicker = true
+        } label: {
+            HStack(spacing: 14) {
+                // Currency icon
+                Text(currency.symbol)
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .foregroundColor(.mint)
+                    .frame(width: 36, height: 36)
+                    .background(Color.mint.opacity(0.15))
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+
+                // Label and current selection
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Currency")
+                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        .foregroundColor(.white)
+
+                    Text(currency.displayName)
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .foregroundColor(.white.opacity(0.5))
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.3))
+            }
+            .padding(16)
+            .background(.ultraThinMaterial)
+            .background(Color.white.opacity(0.05))
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
+            )
+        }
+        .buttonStyle(ScaleButtonStyle())
+        .sheet(isPresented: $showingPicker) {
+            CurrencyPickerView(selectedCurrency: $selectedCurrency)
+        }
+    }
+}
+
+// MARK: - Currency Picker View
+struct CurrencyPickerView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var selectedCurrency: String
+
+    var body: some View {
+        NavigationView {
+            ZStack {
+                // Background
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.1, green: 0.1, blue: 0.2),
+                        Color(red: 0.15, green: 0.1, blue: 0.25)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: 12) {
+                        ForEach(Currency.allCases) { currency in
+                            CurrencyOptionRow(
+                                currency: currency,
+                                isSelected: selectedCurrency == currency.rawValue
+                            ) {
+                                selectedCurrency = currency.rawValue
+                                dismiss()
+                            }
+                        }
+                    }
+                    .padding(20)
+                }
+            }
+            .navigationTitle("Select Currency")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                    .foregroundColor(.mint)
+                }
+            }
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarBackground(Color(red: 0.1, green: 0.1, blue: 0.2), for: .navigationBar)
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+    }
+}
+
+// MARK: - Currency Option Row
+struct CurrencyOptionRow: View {
+    let currency: Currency
+    let isSelected: Bool
+    let onSelect: () -> Void
+
+    var body: some View {
+        Button(action: onSelect) {
+            HStack(spacing: 14) {
+                // Currency symbol
+                Text(currency.symbol)
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .foregroundColor(isSelected ? .black : .mint)
+                    .frame(width: 40, height: 40)
+                    .background(isSelected ? Color.mint : Color.mint.opacity(0.15))
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+
+                // Currency details
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(currency.displayName)
+                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        .foregroundColor(.white)
+
+                    Text(currency.code)
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .foregroundColor(.white.opacity(0.5))
+                }
+
+                Spacer()
+
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 22))
+                        .foregroundColor(.mint)
+                }
+            }
+            .padding(14)
+            .background(isSelected ? Color.mint.opacity(0.15) : Color.white.opacity(0.05))
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(isSelected ? Color.mint.opacity(0.5) : Color.white.opacity(0.1), lineWidth: 1)
+            )
+        }
+        .buttonStyle(ScaleButtonStyle())
     }
 }
 

@@ -17,6 +17,10 @@
 		41D161B42EF83D330004C800 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161B52EF83D330004C800 /* SettingsView.swift */; };
 		41D161D02EF83D330004C800 /* SplashScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161D12EF83D330004C800 /* SplashScreenView.swift */; };
 		41D161D22EF83D330004C800 /* LocationOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161D32EF83D330004C800 /* LocationOnboardingView.swift */; };
+		41D161FA2EF83D330004C800 /* EditBillView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161FB2EF83D330004C800 /* EditBillView.swift */; };
+		41D161FC2EF83D330004C800 /* LocationPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161FD2EF83D330004C800 /* LocationPickerView.swift */; };
+		41D161FE2EF83D330004C800 /* Currency.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161FF2EF83D330004C800 /* Currency.swift */; };
+		41D162002EF83D330004C800 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D162012EF83D330004C800 /* LocationManager.swift */; };
 		41D161C12EF83D330004C800 /* TipCalculatorViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161C02EF83D330004C800 /* TipCalculatorViewModelTests.swift */; };
 		41D161C32EF83D330004C800 /* SavedBillTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161C22EF83D330004C800 /* SavedBillTests.swift */; };
 		41D161C52EF83D330004C800 /* NumberParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D161C42EF83D330004C800 /* NumberParsingTests.swift */; };
@@ -57,6 +61,10 @@
 		41D161E52EF83D330004C800 /* Products.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Products.storekit; sourceTree = "<group>"; };
 		41D161E72EF83D330004C800 /* StoreManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreManagerTests.swift; sourceTree = "<group>"; };
 		41D161F12EF83D330004C800 /* LocationSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSettingsTests.swift; sourceTree = "<group>"; };
+		41D161FB2EF83D330004C800 /* EditBillView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditBillView.swift; sourceTree = "<group>"; };
+		41D161FD2EF83D330004C800 /* LocationPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationPickerView.swift; sourceTree = "<group>"; };
+		41D161FF2EF83D330004C800 /* Currency.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Currency.swift; sourceTree = "<group>"; };
+		41D162012EF83D330004C800 /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -115,6 +123,7 @@
 			children = (
 				41D161E12EF83D330004C800 /* TipProduct.swift */,
 				41D161E32EF83D330004C800 /* StoreManager.swift */,
+				41D162012EF83D330004C800 /* LocationManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -123,6 +132,7 @@
 			isa = PBXGroup;
 			children = (
 				41D161AF2EF83D330004C800 /* SavedBill.swift */,
+				41D161FF2EF83D330004C800 /* Currency.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -135,6 +145,8 @@
 				41D161F22EF83D330004C800 /* VisionScannerView.swift */,
 				41D161B52EF83D330004C800 /* SettingsView.swift */,
 				41D161D12EF83D330004C800 /* SplashScreenView.swift */,
+				41D161FB2EF83D330004C800 /* EditBillView.swift */,
+				41D161FD2EF83D330004C800 /* LocationPickerView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -266,6 +278,10 @@
 				41D161D22EF83D330004C800 /* LocationOnboardingView.swift in Sources */,
 				41D161E02EF83D330004C800 /* TipProduct.swift in Sources */,
 				41D161E22EF83D330004C800 /* StoreManager.swift in Sources */,
+				41D161FA2EF83D330004C800 /* EditBillView.swift in Sources */,
+				41D161FC2EF83D330004C800 /* LocationPickerView.swift in Sources */,
+				41D161FE2EF83D330004C800 /* Currency.swift in Sources */,
+				41D162002EF83D330004C800 /* LocationManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

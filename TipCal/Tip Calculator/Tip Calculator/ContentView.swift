@@ -19,6 +19,7 @@ struct ContentView: View {
     @State private var historyButtonHighlight = false
     @State private var isShowingScanner = false
     @State private var isNoteExpanded = false
+    @State private var showPerPersonDetails = false
     @FocusState private var isInputFocused: Bool
     @FocusState private var isNoteFocused: Bool
 
@@ -32,8 +33,15 @@ struct ContentView: View {
     @AppStorage("emoji_ok") private var emojiOk: String = "😐"
     @AppStorage("emoji_good") private var emojiGood: String = "🤩"
 
-    // MARK: - Scanner Settings
-    @AppStorage("enhancedScannerEnabled") private var enhancedScannerEnabled: Bool = true
+    // MARK: - Scanner Settings (enhanced scanner disabled by default, still in development)
+    @AppStorage("enhancedScannerEnabled") private var enhancedScannerEnabled: Bool = false
+
+    // MARK: - Tip Options
+    @AppStorage("roundUpByDefault") private var roundUpByDefault: Bool = false
+
+    // MARK: - Currency
+    @AppStorage("selectedCurrency") private var selectedCurrency: String = "usd"
+    private var currency: Currency { Currency.from(selectedCurrency) }
 
     // MARK: - Haptic Feedback
     private func triggerHaptic(style: UIImpactFeedbackGenerator.FeedbackStyle = .medium) {
@@ -194,16 +202,26 @@ struct ContentView: View {
         }
     }
 
-    // MARK: - Share Text Generator
-    private var shareText: String {
+    // MARK: - Currency Formatter
+    private func formatCurrency(_ amount: Double) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
-        formatter.currencyCode = "USD"
+        formatter.currencyCode = currency.code
+        return formatter.string(from: NSNumber(value: amount)) ?? "\(currency.symbol)0.00"
+    }
 
-        let bill = formatter.string(from: NSNumber(value: viewModel.billValue)) ?? "$0.00"
-        let tip = formatter.string(from: NSNumber(value: viewModel.tipAmount)) ?? "$0.00"
-        let total = formatter.string(from: NSNumber(value: viewModel.totalAmount)) ?? "$0.00"
-        let perPerson = formatter.string(from: NSNumber(value: viewModel.amountPerPerson)) ?? "$0.00"
+    /// Gets the singular unit name for the currency (e.g., "Dollar", "Euro", "Pound")
+    private var currencyUnitName: String {
+        let parts = currency.displayName.components(separatedBy: " ")
+        return parts.last ?? "Dollar"
+    }
+
+    // MARK: - Share Text Generator
+    private var shareText: String {
+        let bill = formatCurrency(viewModel.billValue)
+        let tip = formatCurrency(viewModel.tipAmount)
+        let total = formatCurrency(viewModel.totalAmount)
+        let perPerson = formatCurrency(viewModel.amountPerPerson)
 
         if viewModel.numberOfPeopleValue > 1 {
             return "Bill: \(bill) | Tip: \(tip) (\(Int(viewModel.effectiveTipPercentage))%) | Total: \(total) | You owe: \(perPerson) — via Sir Tips-A-Lot"
@@ -347,7 +365,7 @@ struct ContentView: View {
                         VStack(spacing: 20) {
                             // Round Up Toggle
                             HStack {
-                                Label("Round Up Tip", systemImage: "arrow.up.circle")
+                                Label("Round Up to Nearest \(currencyUnitName)", systemImage: "arrow.up.circle")
                                     .font(.subheadline.weight(.semibold))
                                     .foregroundColor(.white)
 
@@ -356,8 +374,10 @@ struct ContentView: View {
                                 Toggle("", isOn: $viewModel.roundUp)
                                     .tint(.mint)
                                     .labelsHidden()
-                                    .onChange(of: viewModel.roundUp) { _, _ in
+                                    .onChange(of: viewModel.roundUp) { _, newValue in
                                         triggerHaptic(style: .light)
+                                        // Sync the setting back to defaults when user toggles
+                                        roundUpByDefault = newValue
                                     }
                             }
 
@@ -499,12 +519,77 @@ struct ContentView: View {
                                 .background(Color.white.opacity(0.1))
                                 .padding(.vertical, 12)
 
-                            ResultRow(
-                                icon: "person.fill",
-                                label: "Per Person",
-                                amount: viewModel.amountPerPerson,
-                                style: .highlight
-                            )
+                            // Tappable Per Person Header
+                            Button {
+                                triggerHaptic(style: .light)
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                    showPerPersonDetails.toggle()
+                                }
+                            } label: {
+                                HStack {
+                                    HStack(spacing: 10) {
+                                        Image(systemName: "person.fill")
+                                            .font(.system(size: 14))
+                                            .foregroundColor(.mint)
+
+                                        Text("Per Person")
+                                            .font(.subheadline.weight(.semibold))
+                                            .foregroundColor(.mint)
+                                    }
+
+                                    Spacer()
+
+                                    Text(formatCurrency(viewModel.amountPerPerson))
+                                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                                        .foregroundColor(.mint)
+
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 12, weight: .semibold))
+                                        .foregroundColor(.mint.opacity(0.6))
+                                        .rotationEffect(.degrees(showPerPersonDetails ? 90 : 0))
+                                }
+                            }
+                            .buttonStyle(ScaleButtonStyle())
+
+                            // Expanded Per Person Details
+                            if showPerPersonDetails {
+                                VStack(spacing: 10) {
+                                    // Bill per person
+                                    HStack {
+                                        HStack(spacing: 8) {
+                                            Image(systemName: "receipt")
+                                                .font(.system(size: 12))
+                                                .foregroundColor(.white.opacity(0.5))
+                                            Text("Bill per person")
+                                                .font(.system(size: 13, weight: .medium, design: .rounded))
+                                                .foregroundColor(.white.opacity(0.6))
+                                        }
+                                        Spacer()
+                                        Text(formatCurrency(viewModel.billPerPerson))
+                                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                            .foregroundColor(.white.opacity(0.8))
+                                    }
+
+                                    // Tip per person
+                                    HStack {
+                                        HStack(spacing: 8) {
+                                            Image(systemName: "hand.thumbsup.fill")
+                                                .font(.system(size: 12))
+                                                .foregroundColor(.white.opacity(0.5))
+                                            Text("Tip per person")
+                                                .font(.system(size: 13, weight: .medium, design: .rounded))
+                                                .foregroundColor(.white.opacity(0.6))
+                                        }
+                                        Spacer()
+                                        Text(formatCurrency(viewModel.tipPerPerson))
+                                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                            .foregroundColor(.mint.opacity(0.9))
+                                    }
+                                }
+                                .padding(.top, 8)
+                                .padding(.leading, 24)
+                                .transition(.opacity.combined(with: .move(edge: .top)))
+                            }
                         }
 
                         // Share Button
@@ -715,7 +800,16 @@ struct ContentView: View {
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
                     Button {
+                        // Dismiss both input and note focus states
                         isInputFocused = false
+                        isNoteFocused = false
+                        // Also collapse note field if open
+                        if isNoteExpanded {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                isNoteExpanded = false
+                                viewModel.isEditingNote = false
+                            }
+                        }
                     } label: {
                         Text("Done")
                             .font(.system(size: 16, weight: .semibold, design: .rounded))
@@ -755,10 +849,12 @@ struct ContentView: View {
                 }
             }
             .onAppear {
-                // Initialize tip percentage based on default sentiment (Good)
-                if viewModel.selectedSentiment == "good" {
-                    viewModel.selectedTipPercentage = tipGood
+                // Initialize tip percentage based on default sentiment (Ok - middle option)
+                if viewModel.selectedSentiment == "ok" {
+                    viewModel.selectedTipPercentage = tipOk
                 }
+                // Apply round up default setting
+                viewModel.roundUp = roundUpByDefault
                 // Note: Location permission is requested via LocationOnboardingView on first run
             }
             .onChange(of: tipGood) { _, newValue in
@@ -778,6 +874,10 @@ struct ContentView: View {
                 if viewModel.selectedSentiment == "bad" {
                     viewModel.selectedTipPercentage = newValue
                 }
+            }
+            .onChange(of: roundUpByDefault) { _, newValue in
+                // Sync the round up toggle when the setting changes
+                viewModel.roundUp = newValue
             }
             .onChange(of: isInputFocused) { _, newValue in
                 if newValue {
@@ -1102,6 +1202,8 @@ struct HistoryView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var viewModel: TipCalculatorViewModel
     @State private var expandedBillId: UUID? = nil
+    @State private var showClearConfirmation = false
+    @State private var billToEdit: SavedBill? = nil
 
     var body: some View {
         ZStack {
@@ -1133,7 +1235,7 @@ struct HistoryView: View {
 
                     if !viewModel.recentBills.isEmpty {
                         Button {
-                            viewModel.clearHistory()
+                            showClearConfirmation = true
                         } label: {
                             Text("Clear All")
                                 .font(.system(size: 14, weight: .medium, design: .rounded))
@@ -1179,6 +1281,9 @@ struct HistoryView: View {
                                             expandedBillId = bill.id
                                         }
                                     }
+                                },
+                                onEdit: {
+                                    billToEdit = bill
                                 }
                             )
                             .listRowBackground(Color.white.opacity(0.05))
@@ -1222,6 +1327,17 @@ struct HistoryView: View {
         }
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
+        .alert("Clear All History?", isPresented: $showClearConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Clear All", role: .destructive) {
+                viewModel.clearHistory()
+            }
+        } message: {
+            Text("This will permanently delete all \(viewModel.recentBills.count) saved bills. This action cannot be undone.")
+        }
+        .sheet(item: $billToEdit) { bill in
+            EditBillView(viewModel: viewModel, bill: bill)
+        }
     }
 }
 
@@ -1230,6 +1346,7 @@ struct HistoryRowView: View {
     let bill: SavedBill
     let isExpanded: Bool
     let onTap: () -> Void
+    let onEdit: () -> Void
 
     private static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -1398,6 +1515,14 @@ struct HistoryRowView: View {
             .padding(.vertical, 8)
         }
         .buttonStyle(.plain)
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            Button {
+                onEdit()
+            } label: {
+                Label("Edit", systemImage: "pencil")
+            }
+            .tint(.mint)
+        }
     }
 }
 
