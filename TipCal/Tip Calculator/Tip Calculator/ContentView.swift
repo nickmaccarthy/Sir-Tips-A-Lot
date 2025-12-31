@@ -1264,7 +1264,7 @@ struct HistoryView: View {
                 } else {
                     // Bill List
                     List {
-                        ForEach(viewModel.recentBills) { bill in
+                        ForEach(Array(viewModel.recentBills.enumerated()), id: \.element.id) { index, bill in
                             HistoryRowView(
                                 bill: bill,
                                 isExpanded: expandedBillId == bill.id,
@@ -1279,6 +1279,9 @@ struct HistoryView: View {
                                 },
                                 onEdit: {
                                     billToEdit = bill
+                                },
+                                onDelete: {
+                                    billToDelete = IndexSet(integer: index)
                                 }
                             )
                             .listRowBackground(Color.white.opacity(0.05))
@@ -1358,6 +1361,7 @@ struct HistoryRowView: View {
     let isExpanded: Bool
     let onTap: () -> Void
     let onEdit: () -> Void
+    let onDelete: () -> Void
 
     private static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -1527,6 +1531,12 @@ struct HistoryRowView: View {
         }
         .buttonStyle(.plain)
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            Button(role: .destructive) {
+                onDelete()
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+
             Button {
                 onEdit()
             } label: {
