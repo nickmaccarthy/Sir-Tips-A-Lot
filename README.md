@@ -54,13 +54,22 @@ This is my first iOS application.
 
 <p align="center">
   <img src="screenshots/1.png" width="250" alt="Main Screen" />
-  <img src="screenshots/2.png" width="250" alt="Tip Calculation" />
-  <img src="screenshots/3.png" width="250" alt="Split Bill" />
+  <img src="screenshots/2.png" width="250" alt="Bill Splitting" />
+  <img src="screenshots/3.png" width="250" alt="Bill History" />
 </p>
 
-| Main Screen | Tip Calculation | Split Bill |
-|:-----------:|:---------------:|:----------:|
-| Enter your bill amount | Rate service with emojis | Split between multiple people |
+| Main Screen | Bill Splitting | Bill History |
+|:-----------:|:--------------:|:------------:|
+| Emoji-based tip selection | Per-person breakdown with notes | Lifetime stats & detailed records |
+
+### App Store Screenshots
+
+Pre-sized screenshots for App Store submission are available in `screenshots/appstore/`:
+
+| Size | Dimensions | Device |
+|------|------------|--------|
+| 6.7" | 1290 × 2796 | iPhone 14/15 Pro Max |
+| 6.5" | 1284 × 2778 | iPhone 14/15 Plus |
 
 ## Requirements
 
