@@ -210,12 +210,6 @@ struct ContentView: View {
         return formatter.string(from: NSNumber(value: amount)) ?? "\(currency.symbol)0.00"
     }
 
-    /// Gets the singular unit name for the currency (e.g., "Dollar", "Euro", "Pound")
-    private var currencyUnitName: String {
-        let parts = currency.displayName.components(separatedBy: " ")
-        return parts.last ?? "Dollar"
-    }
-
     // MARK: - Share Text Generator
     private var shareText: String {
         let bill = formatCurrency(viewModel.billValue)
@@ -322,7 +316,7 @@ struct ContentView: View {
                                 .foregroundColor(.white.opacity(0.7))
 
                             HStack(alignment: .firstTextBaseline, spacing: 4) {
-                                Text("$")
+                                Text(currency.symbol)
                                     .font(.system(size: 36, weight: .light, design: .rounded))
                                     .foregroundColor(.mint)
 
@@ -365,7 +359,7 @@ struct ContentView: View {
                         VStack(spacing: 20) {
                             // Round Up Toggle
                             HStack {
-                                Label("Round Up to Nearest \(currencyUnitName)", systemImage: "arrow.up.circle")
+                                Label("Round Up to Nearest \(currency.symbol)", systemImage: "arrow.up.circle")
                                     .font(.subheadline.weight(.semibold))
                                     .foregroundColor(.white)
 

@@ -630,13 +630,6 @@ struct RoundUpSettingRow: View {
 
     private var currency: Currency { Currency.from(selectedCurrency) }
 
-    /// Gets the singular unit name for the currency (e.g., "Dollar", "Euro", "Pound")
-    private var currencyUnitName: String {
-        // Extract the first word from display name (e.g., "US Dollar" -> "Dollar", "Euro" -> "Euro")
-        let parts = currency.displayName.components(separatedBy: " ")
-        return parts.last ?? "Dollar"
-    }
-
     var body: some View {
         VStack(spacing: 12) {
             HStack(spacing: 14) {
@@ -660,7 +653,7 @@ struct RoundUpSettingRow: View {
                         .font(.system(size: 16, weight: .semibold, design: .rounded))
                         .foregroundColor(.white)
 
-                    Text("Round tip to nearest \(currencyUnitName.lowercased())")
+                    Text("Round tip to nearest \(currency.symbol)")
                         .font(.system(size: 12, weight: .medium, design: .rounded))
                         .foregroundColor(.white.opacity(0.5))
                 }
