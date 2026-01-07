@@ -4,10 +4,10 @@
 
 | Field | Value |
 |-------|-------|
-| **Version** | 1.1.0 |
+| **Version** | 1.1.1 |
 | **Build** | (auto-incremented) |
-| **Release Date** | December 30, 2024 |
-| **Status** | Feature Release |
+| **Release Date** | January 6, 2026 |
+| **Status** | Patch Release |
 
 ## Version Scheme
 
@@ -70,5 +70,6 @@ agvtool what-marketing-version
 
 | Version | Build | Date | Notes |
 |---------|-------|------|-------|
+| 1.1.1 | - | 2026-01-06 | App Store guideline compliance fixes |
 | 1.1.0 | - | 2024-12-30 | Receipt scanning, sentiment tipping, location, multi-currency |
 | 1.0.0 | 1 | 2024-12-21 | Initial release |

@@ -437,6 +437,8 @@ struct LocationSettingRow: View {
     let authorizationStatus: CLAuthorizationStatus
     let locationManager: LocationManager
 
+    @Environment(\.openURL) private var openURL
+
     private var isSystemPermissionDenied: Bool {
         authorizationStatus == .denied || authorizationStatus == .restricted
     }
@@ -549,11 +551,9 @@ struct LocationSettingRow: View {
 
     /// Opens the app's settings page in System Settings
     private func openSystemSettings() {
-        #if os(iOS)
         if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
-            UIApplication.shared.open(settingsURL)
+            openURL(settingsURL)
         }
-        #endif
     }
 }
 

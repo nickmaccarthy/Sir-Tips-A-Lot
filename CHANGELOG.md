@@ -14,6 +14,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.1] - 2026-01-06
+
+### Fixed
+- **App Store Guideline 5.1.1 Compliance** — Location permission flow updated
+  - Changed "Enable Location" button text to "Continue"
+  - Removed "Maybe Later" skip button (users must proceed to system dialog)
+- Fixed iOS deployment target mismatch between app (17.6) and test target (17.0)
+- Updated settings URL handler to use modern SwiftUI `openURL` environment
+
+---
+
 ## [1.1.0] - 2024-12-30
 
 ### Added
@@ -92,6 +103,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 1.1.1 | 2026-01-06 | App Store guideline compliance fixes |
 | 1.1.0 | 2024-12-30 | Receipt scanning, sentiment tipping, location, multi-currency |
 | 1.0.0 | 2024-12-21 | Initial release |
 

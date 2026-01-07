@@ -83,51 +83,35 @@ struct LocationOnboardingView: View {
 
                 Spacer()
 
-                // Buttons
-                VStack(spacing: 16) {
-                    // Primary: Enable Location
-                    Button {
-                        triggerHaptic(style: .medium)
-                        locationManager.requestPermission()
-                        // Small delay to allow system dialog to appear, then complete
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            markOnboardingComplete()
-                        }
-                    } label: {
-                        HStack(spacing: 10) {
-                            Image(systemName: "location.fill")
-                                .font(.system(size: 16, weight: .semibold))
-                            Text("Enable Location")
-                                .font(.system(size: 17, weight: .semibold, design: .rounded))
-                        }
-                        .foregroundColor(.black)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(
-                            LinearGradient(
-                                colors: [Color.mint, Color.teal],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .clipShape(Capsule())
-                        .shadow(color: Color.mint.opacity(0.4), radius: 10, x: 0, y: 5)
-                    }
-                    .buttonStyle(ScaleButtonStyle())
-
-                    // Secondary: Maybe Later
-                    Button {
-                        triggerHaptic(style: .light)
-                        // User skipped location - disable the setting
-                        UserDefaults.standard.set(false, forKey: "locationEnabled")
+                // Continue Button - Always proceeds to system permission dialog
+                Button {
+                    triggerHaptic(style: .medium)
+                    locationManager.requestPermission()
+                    // Small delay to allow system dialog to appear, then complete
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         markOnboardingComplete()
-                    } label: {
-                        Text("Maybe Later")
-                            .font(.system(size: 16, weight: .medium, design: .rounded))
-                            .foregroundColor(.white.opacity(0.6))
-                            .padding(.vertical, 12)
                     }
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "location.fill")
+                            .font(.system(size: 16, weight: .semibold))
+                        Text("Continue")
+                            .font(.system(size: 17, weight: .semibold, design: .rounded))
+                    }
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(
+                        LinearGradient(
+                            colors: [Color.mint, Color.teal],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .clipShape(Capsule())
+                    .shadow(color: Color.mint.opacity(0.4), radius: 10, x: 0, y: 5)
                 }
+                .buttonStyle(ScaleButtonStyle())
                 .padding(.horizontal, 40)
                 .padding(.bottom, 50)
             }
@@ -166,5 +150,3 @@ struct LocationOnboardingView: View {
         onComplete: {}
     )
 }
-
-
