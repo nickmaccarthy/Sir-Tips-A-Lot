@@ -14,6 +14,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.0] - 2026-05-16
+
+### Added
+- Round total to the nearest currency unit, mutually exclusive with round-tip mode
+- Settings defaults for choosing round-tip or round-total behavior
+- Tip percentage display now shows the rounded effective percentage when rounding changes the actual tip
+
+### Changed
+- Renamed the round-tip option to "Round Tip to Nearest <currency>"
+- Updated the bill scanner button to use a larger camera-viewfinder icon
+- Replaced default sentiment emoji rendering with asset-backed icons for simulator/device consistency
+
+### Fixed
+- Prevented `-$0.00` tip display when round-total mode is enabled without a bill amount
+- Fixed default emoji previews in settings and the emoji picker edit state
+- Saved bills, split totals, and share text now use rounded-total calculations consistently
+
+---
+
 ## [1.1.1] - 2026-01-06
 
 ### Fixed
@@ -103,6 +122,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 1.2.0 | 2026-05-16 | Round total option, effective tip display, emoji/icon fixes |
 | 1.1.1 | 2026-01-06 | App Store guideline compliance fixes |
 | 1.1.0 | 2024-12-30 | Receipt scanning, sentiment tipping, location, multi-currency |
 | 1.0.0 | 2024-12-21 | Initial release |
