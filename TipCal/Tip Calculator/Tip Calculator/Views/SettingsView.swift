@@ -32,6 +32,7 @@ struct SettingsView: View {
 
     // MARK: - Tip Options
     @AppStorage("roundUpByDefault") var roundUpByDefault: Bool = false
+    @AppStorage("roundTotalUpByDefault") var roundTotalUpByDefault: Bool = false
 
     // MARK: - Currency
     @AppStorage("selectedCurrency") var selectedCurrency: String = "usd"
@@ -144,7 +145,10 @@ struct SettingsView: View {
                         .foregroundColor(.white.opacity(0.5))
                         .padding(.leading, 4)
 
-                    RoundUpSettingRow(roundUpByDefault: $roundUpByDefault)
+                    RoundingOptionsSettingRow(
+                        roundUpByDefault: $roundUpByDefault,
+                        roundTotalUpByDefault: $roundTotalUpByDefault
+                    )
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 8)
@@ -292,7 +296,7 @@ struct EmojiTextField: UIViewRepresentable {
         let textField = UITextField()
         textField.delegate = context.coordinator
         textField.textAlignment = .center
-        textField.font = UIFont.systemFont(ofSize: 36)
+        textField.font = UIFont(name: "AppleColorEmoji", size: 36) ?? UIFont.systemFont(ofSize: 36)
         textField.backgroundColor = .clear
         textField.tintColor = .clear // Hide cursor
         textField.text = text
@@ -348,18 +352,50 @@ struct SentimentSettingRow: View {
     @State private var isEditingEmoji = false
     @FocusState private var emojiFieldFocused: Bool
 
+    private var displayEmoji: String {
+        if !emoji.isEmpty {
+            return emoji
+        }
+
+        switch label {
+        case "Meh Service":
+            return "😢"
+        case "Ok Service":
+            return "😐"
+        case "Great Service":
+            return "🤩"
+        default:
+            return "🙂"
+        }
+    }
+
+    private var displayEmojiAssetName: String? {
+        switch displayEmoji {
+        case "😢":
+            return "SadServiceEmoji"
+        case "😐":
+            return "OkServiceEmoji"
+        case "🤩":
+            return "GreatServiceEmoji"
+        default:
+            return nil
+        }
+    }
+
     var body: some View {
         HStack(spacing: 16) {
             // Tappable Emoji with edit hint
             ZStack {
                 if isEditingEmoji {
+                    emojiPreview
+
                     EmojiTextField(text: $emoji) {
                         isEditingEmoji = false
                     }
                     .frame(width: 50, height: 50)
+                    .opacity(0.02)
                 } else {
-                    Text(emoji)
-                        .font(.system(size: 36))
+                    emojiPreview
                 }
 
                 // Edit indicator
@@ -428,6 +464,19 @@ struct SentimentSettingRow: View {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .stroke(Color.white.opacity(0.1), lineWidth: 1)
         )
+    }
+
+    @ViewBuilder
+    private var emojiPreview: some View {
+        if let displayEmojiAssetName {
+            Image(displayEmojiAssetName)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 42, height: 42)
+        } else {
+            Text(displayEmoji)
+                .font(.custom("AppleColorEmoji", size: 36))
+        }
     }
 }
 
@@ -623,61 +672,50 @@ struct ScannerSettingRow: View {
     }
 }
 
-// MARK: - Round Up Setting Row
-struct RoundUpSettingRow: View {
+// MARK: - Rounding Options Setting Row
+struct RoundingOptionsSettingRow: View {
     @Binding var roundUpByDefault: Bool
+    @Binding var roundTotalUpByDefault: Bool
     @AppStorage("selectedCurrency") private var selectedCurrency: String = "usd"
 
     private var currency: Currency { Currency.from(selectedCurrency) }
 
     var body: some View {
-        VStack(spacing: 12) {
-            HStack(spacing: 14) {
-                // Round up icon
-                Image(systemName: "arrow.up.circle")
-                    .font(.system(size: 20))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [Color.mint, Color.teal],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 36, height: 36)
-                    .background(Color.mint.opacity(0.15))
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        VStack(spacing: 0) {
+            roundingRow(
+                icon: "arrow.up.circle",
+                title: "Round Up Tip",
+                subtitle: "Round tip to nearest \(currency.symbol)",
+                isOn: Binding(
+                    get: { roundUpByDefault },
+                    set: { newValue in
+                        roundUpByDefault = newValue
+                        if newValue {
+                            roundTotalUpByDefault = false
+                        }
+                    }
+                )
+            )
 
-                // Label and subtitle
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Round Up Tip")
-                        .font(.system(size: 16, weight: .semibold, design: .rounded))
-                        .foregroundColor(.white)
+            Divider()
+                .background(Color.white.opacity(0.12))
+                .padding(.leading, 50)
+                .padding(.vertical, 12)
 
-                    Text("Round tip to nearest \(currency.symbol)")
-                        .font(.system(size: 12, weight: .medium, design: .rounded))
-                        .foregroundColor(.white.opacity(0.5))
-                }
-
-                Spacer()
-
-                // Toggle
-                Toggle("", isOn: $roundUpByDefault)
-                    .tint(.mint)
-                    .labelsHidden()
-            }
-
-            // Explanation text
-            HStack(spacing: 8) {
-                Image(systemName: "info.circle")
-                    .font(.system(size: 12))
-                    .foregroundColor(.mint.opacity(0.7))
-
-                Text("When enabled, tips will be rounded up by default")
-                    .font(.system(size: 11, weight: .medium, design: .rounded))
-                    .foregroundColor(.white.opacity(0.5))
-
-                Spacer()
-            }
+            roundingRow(
+                icon: "creditcard.circle",
+                title: "Round Up Total",
+                subtitle: "Increase tip so total lands on nearest \(currency.symbol)",
+                isOn: Binding(
+                    get: { roundTotalUpByDefault },
+                    set: { newValue in
+                        roundTotalUpByDefault = newValue
+                        if newValue {
+                            roundUpByDefault = false
+                        }
+                    }
+                )
+            )
         }
         .padding(16)
         .background(.ultraThinMaterial)
@@ -687,6 +725,47 @@ struct RoundUpSettingRow: View {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .stroke(Color.white.opacity(0.1), lineWidth: 1)
         )
+    }
+
+    @ViewBuilder
+    private func roundingRow(
+        icon: String,
+        title: String,
+        subtitle: String,
+        isOn: Binding<Bool>
+    ) -> some View {
+        HStack(spacing: 14) {
+            Image(systemName: icon)
+                .font(.system(size: 20))
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [Color.mint, Color.teal],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .frame(width: 36, height: 36)
+                .background(Color.mint.opacity(0.15))
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .foregroundColor(.white)
+
+                Text(subtitle)
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .foregroundColor(.white.opacity(0.5))
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.85)
+            }
+
+            Spacer()
+
+            Toggle("", isOn: isOn)
+                .tint(.mint)
+                .labelsHidden()
+        }
     }
 }
 

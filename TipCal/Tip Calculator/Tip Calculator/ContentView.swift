@@ -38,10 +38,17 @@ struct ContentView: View {
 
     // MARK: - Tip Options
     @AppStorage("roundUpByDefault") private var roundUpByDefault: Bool = false
+    @AppStorage("roundTotalUpByDefault") private var roundTotalUpByDefault: Bool = false
 
     // MARK: - Currency
     @AppStorage("selectedCurrency") private var selectedCurrency: String = "usd"
     private var currency: Currency { Currency.from(selectedCurrency) }
+    private var badServiceEmoji: String { emojiBad.isEmpty ? "😢" : emojiBad }
+    private var okServiceEmoji: String { emojiOk.isEmpty ? "😐" : emojiOk }
+    private var goodServiceEmoji: String { emojiGood.isEmpty ? "🤩" : emojiGood }
+    private var badServiceEmojiAsset: String? { badServiceEmoji == "😢" ? "SadServiceEmoji" : nil }
+    private var okServiceEmojiAsset: String? { okServiceEmoji == "😐" ? "OkServiceEmoji" : nil }
+    private var goodServiceEmojiAsset: String? { goodServiceEmoji == "🤩" ? "GreatServiceEmoji" : nil }
 
     // MARK: - Haptic Feedback
     private func triggerHaptic(style: UIImpactFeedbackGenerator.FeedbackStyle = .medium) {
@@ -49,6 +56,15 @@ struct ContentView: View {
         let generator = UIImpactFeedbackGenerator(style: style)
         generator.impactOccurred()
         #endif
+    }
+
+    private func applyDefaultRoundingOptions() {
+        if roundTotalUpByDefault {
+            roundUpByDefault = false
+            viewModel.roundTotalUp = true
+        } else {
+            viewModel.roundUp = roundUpByDefault
+        }
     }
 
     // MARK: - Scanner Result Handler
@@ -76,9 +92,9 @@ struct ContentView: View {
         guard let sentiment = viewModel.selectedSentiment else { return nil }
 
         switch sentiment {
-        case "bad": return emojiBad
-        case "ok": return emojiOk
-        case "good": return emojiGood
+        case "bad": return badServiceEmoji
+        case "ok": return okServiceEmoji
+        case "good": return goodServiceEmoji
         default: return nil
         }
     }
@@ -123,7 +139,8 @@ struct ContentView: View {
                 HStack(spacing: 10) {
                     // Bad Service
                     SentimentButton(
-                        emoji: emojiBad,
+                        emoji: badServiceEmoji,
+                        emojiAssetName: badServiceEmojiAsset,
                         percentage: Int(tipBad),
                         isSelected: !viewModel.isCustomTipSelected && viewModel.selectedSentiment == "bad"
                     ) {
@@ -135,7 +152,8 @@ struct ContentView: View {
 
                     // Ok Service
                     SentimentButton(
-                        emoji: emojiOk,
+                        emoji: okServiceEmoji,
+                        emojiAssetName: okServiceEmojiAsset,
                         percentage: Int(tipOk),
                         isSelected: !viewModel.isCustomTipSelected && viewModel.selectedSentiment == "ok"
                     ) {
@@ -147,7 +165,8 @@ struct ContentView: View {
 
                     // Great Service
                     SentimentButton(
-                        emoji: emojiGood,
+                        emoji: goodServiceEmoji,
+                        emojiAssetName: goodServiceEmojiAsset,
                         percentage: Int(tipGood),
                         isSelected: !viewModel.isCustomTipSelected && viewModel.selectedSentiment == "good"
                     ) {
@@ -214,13 +233,13 @@ struct ContentView: View {
     private var shareText: String {
         let bill = formatCurrency(viewModel.billValue)
         let tip = formatCurrency(viewModel.tipAmount)
-        let total = formatCurrency(viewModel.totalAmount)
+        let total = formatCurrency(viewModel.grandTotal)
         let perPerson = formatCurrency(viewModel.amountPerPerson)
 
         if viewModel.numberOfPeopleValue > 1 {
-            return "Bill: \(bill) | Tip: \(tip) (\(Int(viewModel.effectiveTipPercentage))%) | Total: \(total) | You owe: \(perPerson) — via Sir Tips-A-Lot"
+            return "Bill: \(bill) | Tip: \(tip) (\(viewModel.tipPercentageDisplay)) | Total: \(total) | You owe: \(perPerson) — via Sir Tips-A-Lot"
         } else {
-            return "Bill: \(bill) | Tip: \(tip) (\(Int(viewModel.effectiveTipPercentage))%) | Total: \(total) — via Sir Tips-A-Lot"
+            return "Bill: \(bill) | Tip: \(tip) (\(viewModel.tipPercentageDisplay)) | Total: \(total) — via Sir Tips-A-Lot"
         }
     }
 
@@ -251,9 +270,16 @@ struct ContentView: View {
                             Text("Sir Tips-A-Lot")
                                 .font(.system(size: 32, weight: .bold, design: .rounded))
                                 .foregroundColor(.white)
-                            Text("They like big tips and they cannot lie 🍸")
-                                .font(.subheadline)
-                                .foregroundColor(.white.opacity(0.5))
+                            HStack(alignment: .lastTextBaseline, spacing: 4) {
+                                Text("They like big tips and they cannot lie")
+                                    .font(.subheadline)
+                                    .foregroundColor(.white.opacity(0.5))
+
+                                Image("TaglineCocktailEmoji")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 18, height: 18)
+                            }
                         }
                         Spacer()
 
@@ -264,6 +290,7 @@ struct ContentView: View {
                                 viewModel.resetAll()
                                 // Also update to "Ok" tip percentage
                                 viewModel.selectedTipPercentage = tipOk
+                                applyDefaultRoundingOptions()
                             }
                         } label: {
                             Image(systemName: "arrow.counterclockwise")
@@ -336,8 +363,8 @@ struct ContentView: View {
                                     triggerHaptic(style: .light)
                                     isShowingScanner = true
                                 } label: {
-                                    Image(systemName: "text.viewfinder")
-                                        .font(.title2)
+                                    Image(systemName: "camera.viewfinder")
+                                        .font(.system(size: 32, weight: .medium))
                                         .foregroundColor(.mint)
                                         .padding(10)
                                         .background(Color.white.opacity(0.1))
@@ -357,9 +384,9 @@ struct ContentView: View {
                     // Options Card
                     GlassCard {
                         VStack(spacing: 20) {
-                            // Round Up Toggle
+                            // Round Tip Toggle
                             HStack {
-                                Label("Round Up to Nearest \(currency.symbol)", systemImage: "arrow.up.circle")
+                                Label("Round Tip to Nearest \(currency.symbol)", systemImage: "arrow.up.circle")
                                     .font(.subheadline.weight(.semibold))
                                     .foregroundColor(.white)
 
@@ -370,8 +397,33 @@ struct ContentView: View {
                                     .labelsHidden()
                                     .onChange(of: viewModel.roundUp) { _, newValue in
                                         triggerHaptic(style: .light)
-                                        // Sync the setting back to defaults when user toggles
                                         roundUpByDefault = newValue
+                                        if newValue {
+                                            roundTotalUpByDefault = false
+                                        }
+                                    }
+                            }
+
+                            Divider()
+                                .background(Color.white.opacity(0.2))
+
+                            // Round Total Toggle
+                            HStack {
+                                Label("Round Total to Nearest \(currency.symbol)", systemImage: "creditcard.circle")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundColor(.white)
+
+                                Spacer()
+
+                                Toggle("", isOn: $viewModel.roundTotalUp)
+                                    .tint(.mint)
+                                    .labelsHidden()
+                                    .onChange(of: viewModel.roundTotalUp) { _, newValue in
+                                        triggerHaptic(style: .light)
+                                        roundTotalUpByDefault = newValue
+                                        if newValue {
+                                            roundUpByDefault = false
+                                        }
                                     }
                             }
 
@@ -440,7 +492,7 @@ struct ContentView: View {
                         // Tip Amount
                         ResultRow(
                             icon: "hand.thumbsup.fill",
-                            label: "Tip (\(Int(viewModel.effectiveTipPercentage))%)",
+                            label: "Tip (\(viewModel.tipPercentageDisplay))",
                             amount: viewModel.tipAmount,
                             style: .regular
                         )
@@ -847,8 +899,7 @@ struct ContentView: View {
                 if viewModel.selectedSentiment == "ok" {
                     viewModel.selectedTipPercentage = tipOk
                 }
-                // Apply round up default setting
-                viewModel.roundUp = roundUpByDefault
+                applyDefaultRoundingOptions()
                 // Note: Location permission is requested via LocationOnboardingView on first run
             }
             .onChange(of: tipGood) { _, newValue in
@@ -872,6 +923,16 @@ struct ContentView: View {
             .onChange(of: roundUpByDefault) { _, newValue in
                 // Sync the round up toggle when the setting changes
                 viewModel.roundUp = newValue
+                if newValue {
+                    roundTotalUpByDefault = false
+                }
+            }
+            .onChange(of: roundTotalUpByDefault) { _, newValue in
+                // Sync the round total toggle when the setting changes
+                viewModel.roundTotalUp = newValue
+                if newValue {
+                    roundUpByDefault = false
+                }
             }
             .onChange(of: isInputFocused) { _, newValue in
                 if newValue {
@@ -1658,6 +1719,7 @@ struct GlassCard<Content: View>: View {
 // MARK: - Sentiment Button
 struct SentimentButton: View {
     let emoji: String
+    let emojiAssetName: String?
     let percentage: Int
     let isSelected: Bool
     let action: () -> Void
@@ -1665,9 +1727,17 @@ struct SentimentButton: View {
     var body: some View {
         Button(action: action) {
             VStack(spacing: 4) {
-                Text(emoji)
-                    .font(.system(size: 28))
-                    .scaleEffect(isSelected ? 1.2 : 1.0)
+                if let emojiAssetName {
+                    Image(emojiAssetName)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 34, height: 34)
+                        .scaleEffect(isSelected ? 1.2 : 1.0)
+                } else {
+                    Text(emoji)
+                        .font(.custom("AppleColorEmoji", size: 28))
+                        .scaleEffect(isSelected ? 1.2 : 1.0)
+                }
 
                 Text("\(percentage)%")
                     .font(.system(size: 12, weight: .bold, design: .rounded))

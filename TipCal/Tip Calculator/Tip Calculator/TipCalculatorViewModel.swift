@@ -13,7 +13,20 @@ import CoreLocation
 class TipCalculatorViewModel: ObservableObject {
     @Published var billAmountString: String = ""
     @Published var selectedTipPercentage: Double = 18.0
-    @Published var roundUp: Bool = false
+    @Published var roundUp: Bool = false {
+        didSet {
+            if roundUp {
+                roundTotalUp = false
+            }
+        }
+    }
+    @Published var roundTotalUp: Bool = false {
+        didSet {
+            if roundTotalUp {
+                roundUp = false
+            }
+        }
+    }
     @Published var numberOfPeopleString: String = "1"
     @Published var isCustomTipSelected: Bool = false
     @Published var customTipString: String = ""
@@ -65,7 +78,7 @@ class TipCalculatorViewModel: ObservableObject {
             $billAmountString,
             $selectedTipPercentage,
             $numberOfPeopleString,
-            Publishers.CombineLatest3($roundUp, $customTipString, $isCustomTipSelected)
+            Publishers.CombineLatest4($roundUp, $roundTotalUp, $customTipString, $isCustomTipSelected)
         )
         .dropFirst() // Skip the initial values on subscription
         .debounce(for: .seconds(autoSaveDelay), scheduler: DispatchQueue.main)
@@ -90,9 +103,34 @@ class TipCalculatorViewModel: ObservableObject {
         billValue * (effectiveTipPercentage / 100.0)
     }
 
+    var actualTipPercentage: Double {
+        guard billValue > 0 else {
+            return effectiveTipPercentage
+        }
+        return (tipAmount / billValue) * 100.0
+    }
+
+    var tipPercentageDisplay: String {
+        let selectedPercentage = formatTipPercentage(effectiveTipPercentage)
+        guard billValue > 0,
+              abs(tipAmount - tipAmountBeforeRounding) >= 0.005 else {
+            return "\(selectedPercentage)%"
+        }
+
+        return "\(selectedPercentage)% -> \(formatTipPercentage(actualTipPercentage))%"
+    }
+
     var tipAmount: Double {
         if roundUp {
             return ceil(tipAmountBeforeRounding)
+        }
+        if roundTotalUp {
+            guard billValue > 0 || scannedTotal != nil else {
+                return 0
+            }
+            let totalBase = scannedTotal ?? billValue
+            let roundedTotal = ceil(totalBase + tipAmountBeforeRounding - 0.000001)
+            return max(0, roundedTotal - totalBase)
         }
         return tipAmountBeforeRounding
     }
@@ -139,6 +177,14 @@ class TipCalculatorViewModel: ObservableObject {
         return totalAmount
     }
 
+    private func formatTipPercentage(_ percentage: Double) -> String {
+        let roundedWhole = percentage.rounded()
+        if abs(percentage - roundedWhole) < 0.05 {
+            return "\(Int(roundedWhole))"
+        }
+        return String(format: "%.1f", percentage)
+    }
+
     /// Clears all scanned receipt data
     func clearScannedData() {
         scannedSubtotal = nil
@@ -164,6 +210,8 @@ class TipCalculatorViewModel: ObservableObject {
         guard let lastBill = recentBills.first else { return false }
         return lastBill.billAmount == billValue &&
                lastBill.tipPercentage == effectiveTipPercentage &&
+               lastBill.tipAmount == tipAmount &&
+               lastBill.totalAmount == grandTotal &&
                lastBill.numberOfPeople == numberOfPeopleValue
     }
 
@@ -191,6 +239,7 @@ class TipCalculatorViewModel: ObservableObject {
         billAmountString = ""
         numberOfPeopleString = "1"
         roundUp = false
+        roundTotalUp = false
         isCustomTipSelected = false
         customTipString = ""
         selectedSentiment = "ok"
@@ -254,7 +303,7 @@ class TipCalculatorViewModel: ObservableObject {
             billAmount: billValue,
             tipPercentage: effectiveTipPercentage,
             tipAmount: tipAmount,
-            totalAmount: totalAmount,
+            totalAmount: grandTotal,
             numberOfPeople: numberOfPeopleValue,
             amountPerPerson: amountPerPerson,
             locationName: locationName,

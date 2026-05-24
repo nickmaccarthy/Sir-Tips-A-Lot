@@ -73,6 +73,32 @@ final class TipCalculatorViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.effectiveTipPercentage, 0.0, accuracy: 0.001)
     }
 
+    func testTipPercentageDisplay_withoutRoundingShowsSelectedPercentage() {
+        viewModel.billAmountString = "100"
+        viewModel.selectedTipPercentage = 18.0
+
+        XCTAssertEqual(viewModel.actualTipPercentage, 18.0, accuracy: 0.001)
+        XCTAssertEqual(viewModel.tipPercentageDisplay, "18%")
+    }
+
+    func testTipPercentageDisplay_withRoundTotalUpShowsActualPercentage() {
+        viewModel.billAmountString = "45.67"
+        viewModel.selectedTipPercentage = 18.0
+        viewModel.roundTotalUp = true
+
+        XCTAssertEqual(viewModel.actualTipPercentage, 18.24, accuracy: 0.01)
+        XCTAssertEqual(viewModel.tipPercentageDisplay, "18% -> 18.2%")
+    }
+
+    func testTipPercentageDisplay_withRoundTipUpShowsActualPercentage() {
+        viewModel.billAmountString = "45.67"
+        viewModel.selectedTipPercentage = 18.0
+        viewModel.roundUp = true
+
+        XCTAssertEqual(viewModel.actualTipPercentage, 19.71, accuracy: 0.01)
+        XCTAssertEqual(viewModel.tipPercentageDisplay, "18% -> 19.7%")
+    }
+
     // MARK: - Tip Amount Tests
 
     func testTipAmount_withoutRounding_returnsExactAmount() {
@@ -96,6 +122,30 @@ final class TipCalculatorViewModelTests: XCTestCase {
         viewModel.roundUp = true
         // 18% of 45.67 = 8.2206, ceil = 9.0
         XCTAssertEqual(viewModel.tipAmount, 9.0, accuracy: 0.001)
+    }
+
+    func testTipAmount_withRoundTotalUp_adjustsTipForWholeTotal() {
+        viewModel.billAmountString = "45.67"
+        viewModel.selectedTipPercentage = 18.0
+        viewModel.roundTotalUp = true
+
+        XCTAssertEqual(viewModel.tipAmount, 8.33, accuracy: 0.001)
+    }
+
+    func testTipAmount_withRoundTotalUpAlreadyWhole_keepsOriginalTip() {
+        viewModel.billAmountString = "100"
+        viewModel.selectedTipPercentage = 20.0
+        viewModel.roundTotalUp = true
+
+        XCTAssertEqual(viewModel.tipAmount, 20.0, accuracy: 0.001)
+    }
+
+    func testTipAmount_withRoundTotalUpAndNoBill_returnsZero() {
+        viewModel.billAmountString = ""
+        viewModel.selectedTipPercentage = 18.0
+        viewModel.roundTotalUp = true
+
+        XCTAssertEqual(viewModel.tipAmount, 0.0, accuracy: 0.001)
     }
 
     func testTipAmountBeforeRounding_returnsExactCalculation() {
@@ -126,6 +176,30 @@ final class TipCalculatorViewModelTests: XCTestCase {
         viewModel.roundUp = true
         // Bill: 45.67 + Tip (ceil(8.2206) = 9.0) = 54.67
         XCTAssertEqual(viewModel.totalAmount, 54.67, accuracy: 0.001)
+    }
+
+    func testTotalAmount_withRoundTotalUp_returnsWholeDollarTotal() {
+        viewModel.billAmountString = "45.67"
+        viewModel.selectedTipPercentage = 18.0
+        viewModel.roundTotalUp = true
+
+        XCTAssertEqual(viewModel.totalAmount, 54.0, accuracy: 0.001)
+    }
+
+    func testRoundingModes_enablingRoundTotalDisablesRoundTip() {
+        viewModel.roundUp = true
+        viewModel.roundTotalUp = true
+
+        XCTAssertFalse(viewModel.roundUp)
+        XCTAssertTrue(viewModel.roundTotalUp)
+    }
+
+    func testRoundingModes_enablingRoundTipDisablesRoundTotal() {
+        viewModel.roundTotalUp = true
+        viewModel.roundUp = true
+
+        XCTAssertTrue(viewModel.roundUp)
+        XCTAssertFalse(viewModel.roundTotalUp)
     }
 
     // MARK: - Number of People Tests
@@ -178,6 +252,15 @@ final class TipCalculatorViewModelTests: XCTestCase {
         viewModel.numberOfPeopleString = "3"
         // Total: 120, Per person: 40
         XCTAssertEqual(viewModel.amountPerPerson, 40.0, accuracy: 0.001)
+    }
+
+    func testAmountPerPerson_withRoundTotalUp_splitsRoundedTotal() {
+        viewModel.billAmountString = "45.67"
+        viewModel.selectedTipPercentage = 18.0
+        viewModel.roundTotalUp = true
+        viewModel.numberOfPeopleString = "3"
+
+        XCTAssertEqual(viewModel.amountPerPerson, 18.0, accuracy: 0.001)
     }
 
     // MARK: - Tip Selection Tests
@@ -380,6 +463,12 @@ final class TipCalculatorViewModelTests: XCTestCase {
         XCTAssertFalse(viewModel.roundUp)
     }
 
+    func testResetAll_disablesRoundTotalUp() {
+        viewModel.roundTotalUp = true
+        viewModel.resetAll()
+        XCTAssertFalse(viewModel.roundTotalUp)
+    }
+
     func testResetAll_disablesCustomTip() {
         viewModel.isCustomTipSelected = true
         viewModel.customTipString = "25"
@@ -409,6 +498,7 @@ final class TipCalculatorViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.billAmountString, "")
         XCTAssertEqual(viewModel.numberOfPeopleString, "1")
         XCTAssertFalse(viewModel.roundUp)
+        XCTAssertFalse(viewModel.roundTotalUp)
         XCTAssertFalse(viewModel.isCustomTipSelected)
         XCTAssertEqual(viewModel.customTipString, "")
         XCTAssertEqual(viewModel.selectedSentiment, "ok")
@@ -450,6 +540,17 @@ final class TipCalculatorViewModelTests: XCTestCase {
         let savedBill = viewModel.recentBills.first
         XCTAssertNil(savedBill?.locationName)
         XCTAssertNil(savedBill?.sentiment)
+    }
+
+    func testSaveBill_withRoundTotalUp_savesAdjustedTipAndRoundedTotal() {
+        viewModel.billAmountString = "45.67"
+        viewModel.selectedTipPercentage = 18.0
+        viewModel.roundTotalUp = true
+        viewModel.saveBill()
+
+        let savedBill = viewModel.recentBills.first
+        XCTAssertEqual(savedBill?.tipAmount ?? 0, 8.33, accuracy: 0.001)
+        XCTAssertEqual(savedBill?.totalAmount ?? 0, 54.0, accuracy: 0.001)
     }
 
     // MARK: - Save Bill with Notes Tests
